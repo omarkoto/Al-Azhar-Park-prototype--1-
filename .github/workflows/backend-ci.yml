@@ -1,0 +1,41 @@
+name: Backend CI
+
+on:
+  push:
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+  pull_request:
+    paths: ['backend/**']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: azharpark_app
+          POSTGRES_PASSWORD: ci_password_only
+          POSTGRES_DB: azharpark_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U azharpark_app -d azharpark_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://azharpark_app:ci_password_only@localhost:5432/azharpark_test?schema=public
+      TEST_DATABASE_URL: postgresql://azharpark_app:ci_password_only@localhost:5432/azharpark_test?schema=public
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      # lint → typecheck → unit + e2e + database tests → production build
+      - run: npm run check

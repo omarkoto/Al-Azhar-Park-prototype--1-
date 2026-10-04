@@ -1,0 +1,93 @@
+# Al-Azhar Park — Docker Compose (optional; local development works with a plain PostgreSQL install).
+#
+# Same database name, role and password settings as docs/postgres-setup.md, so nothing changes when you switch.
+#
+#   cp docker/.env.example docker/.env          # then edit the passwords
+#   docker compose -f docker/docker-compose.yml --env-file docker/.env up -d postgres pgadmin
+#
+# Optional pieces use profiles so they stay off until needed:
+#   --profile redis   Redis (rate-limit store / cache / job queue — NOT needed yet)
+#   --profile mail    MailHog catch-all mailbox (ticket e-mails in development, Phase 7)
+#   --profile app     the API itself, built from backend/Dockerfile
+
+name: azharpark
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-azharpark_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-azharpark}
+    ports:
+      # 5433 on the host by default so it never clashes with a local PostgreSQL service on 5432
+      - '${POSTGRES_PUBLISHED_PORT:-5433}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@azharpark.test}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?Set PGADMIN_DEFAULT_PASSWORD in docker/.env}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '${PGADMIN_PUBLISHED_PORT:-5050}:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+  redis:
+    profiles: ['redis']
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '${REDIS_PUBLISHED_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+
+  mailhog:
+    profiles: ['mail']
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # web inbox
+
+  api:
+    profiles: ['app']
+    build:
+      context: ../backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${API_NODE_ENV:-development}
+      PORT: 3000
+      HOST: 0.0.0.0
+      # inside Compose the database host is the SERVICE NAME, not localhost
+      DATABASE_URL: postgresql://${POSTGRES_USER:-azharpark_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-azharpark}?schema=public
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
+      TICKET_TOKEN_PEPPER: ${TICKET_TOKEN_PEPPER:-}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    ports:
+      - '${API_PUBLISHED_PORT:-3000}:3000'
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  redis-data:
