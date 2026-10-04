@@ -1,0 +1,12 @@
+Drop your Al-Azhar Park hero video here, named exactly:
+
+    hero.mp4
+
+The homepage hero looks for /videos/hero.mp4 automatically. Until this
+file exists, the hero falls back to a slow-zoom animation of the park
+photo — no broken video icon, no build changes needed. Once you add
+hero.mp4, refresh the site and it plays automatically (muted, looped,
+autoplaying, no controls — standard ambient hero-video behavior).
+
+Recommended: an MP4 (H.264), under ~15MB, 1920x1080 or larger, 10-20s
+loop, no audio needed since it plays muted. Landscape orientation.

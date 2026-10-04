@@ -1,0 +1,51 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- environment & secrets (never commit) ---
+.env
+.env.*
+!.env.example
+
+# --- build / test output ---
+coverage
+*.tsbuildinfo
+backend/dist
+
+# --- local file storage for uploads (Phase 4+) ---
+backend/storage/
+
+# --- tooling ---
+.claude/
+
+# --- legacy design artifacts kept locally; not part of the application ---
+/uploads/
+/site-assets/
+/assets/
+/support.js
+/al-azhar-park-standalone.html
+/Al-Azhar Park*.dc.html
+/.thumbnail
+/--full-page
+/--selector

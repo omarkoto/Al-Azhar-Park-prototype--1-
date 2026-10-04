@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teal-950: #06251f;
+  --color-teal-900: #0b3d33;
+  --color-teal-800: #0e4f42;
+  --color-teal-700: #08695d;
+  --color-teal-600: #147d6d;
+  --color-teal-500: #2b9684;
+  --color-teal-100: #dcece7;
+  --color-teal-50: #eef5f2;
+
+  --color-sand-50: #faf7f0;
+  --color-sand-100: #f4eee1;
+  --color-sand-200: #e9dfc8;
+
+  --color-gold-700: #96702c;
+  --color-gold-600: #b8863a;
+  --color-gold-500: #cb9c4f;
+  --color-gold-100: #f1e2c2;
+
+  --color-ink-900: #211d17;
+  --color-ink-700: #45403790;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-arabic: "Amiri", "Traditional Arabic", serif;
+  --font-sans: "Cairo", "Segoe UI", sans-serif;
+
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-sand-50);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+}
+
+[dir="rtl"] .font-display {
+  font-family: var(--font-arabic);
+}
+
+/* Arabic is a connected script: letter-spacing and uppercase transforms (used for the Latin
+   eyebrows, buttons and labels) split the letters apart, so switch them off in RTL. */
+[dir="rtl"] *,
+[dir="rtl"] *::before,
+[dir="rtl"] *::after {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* Arabic glyphs are taller than Latin ones; the tight display line-heights clip them. */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] blockquote {
+  line-height: 1.45 !important;
+}
+
+::selection {
+  background-color: var(--color-gold-500);
+  color: var(--color-teal-950);
+}

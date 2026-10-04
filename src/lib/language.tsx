@@ -1,0 +1,53 @@
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { contentByLang, type Lang, type SiteContent } from '../content'
+
+interface LanguageContextValue {
+  lang: Lang
+  dir: 'ltr' | 'rtl'
+  content: SiteContent
+  toggleLang: () => void
+  setLang: (lang: Lang) => void
+}
+
+const LanguageContext = createContext<LanguageContextValue | null>(null)
+const STORAGE_KEY = 'azharpark-lang'
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const { i18n } = useTranslation()
+  const lang: Lang = i18n.language === 'ar' ? 'ar' : 'en'
+  const dir = lang === 'ar' ? 'rtl' : 'ltr'
+
+  useEffect(() => {
+    document.documentElement.lang = lang
+    document.documentElement.dir = dir
+    window.localStorage.setItem(STORAGE_KEY, lang)
+  }, [lang, dir])
+
+  const value = useMemo<LanguageContextValue>(
+    () => ({
+      lang,
+      dir,
+      content: contentByLang[lang],
+      toggleLang: () => {
+        void i18n.changeLanguage(lang === 'en' ? 'ar' : 'en')
+      },
+      setLang: (l: Lang) => {
+        void i18n.changeLanguage(l)
+      },
+    }),
+    [lang, dir, i18n],
+  )
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
+}
+
+export function useLanguage() {
+  const ctx = useContext(LanguageContext)
+  if (!ctx) throw new Error('useLanguage must be used within a LanguageProvider')
+  return ctx
+}
+
+export function useContent() {
+  return useLanguage().content
+}
