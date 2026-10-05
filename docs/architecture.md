@@ -39,7 +39,7 @@ response ◄─ { data, meta? }  (EnvelopeInterceptor)        errors ◄─ { er
 - **Pagination** (`src/common/dto/pagination.ts`): `?page&limit&search&sortBy&sortOrder`, limit ≤ 100, sort fields whitelisted per endpoint.
 - **Logging** redacts `Authorization`, cookies, passwords and tokens; health probes are not logged.
 - **Security**: Helmet (a relaxed CSP only for the Swagger UI path), CORS allow-list (never `*`), rate limiting (health exempt), `x-powered-by` removed, configurable `trust proxy`.
-  *Note for Phase 4:* Helmet sends `Cross-Origin-Resource-Policy: same-origin`; the uploaded-media route will override it to `cross-origin` so the website can show images.
+  Helmet sends `Cross-Origin-Resource-Policy: same-origin`; the media file route overrides it to `cross-origin` so the website can show uploaded images (done in Phase 4).
 
 ## Database workflow
 
@@ -61,4 +61,5 @@ response ◄─ { data, meta? }  (EnvelopeInterceptor)        errors ◄─ { er
 
 Phase 2 — authentication & RBAC (done): see [`authentication.md`](authentication.md).
 Phase 3 — park CMS and staff portal (done): see [`park-cms.md`](park-cms.md).
-Phase 4 onward — restaurants, events, media, ticketing, scanning, analytics (not started).
+Phase 4 — restaurants, menus and media (done): see [`restaurants-media.md`](restaurants-media.md).
+Phase 5 onward — events, ticketing, scanning, analytics (not started).

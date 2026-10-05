@@ -14,6 +14,8 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
+import { MediaModule } from './modules/media/media.module';
+import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ParkModule } from './modules/park/park.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
@@ -35,7 +37,9 @@ import { UsersModule } from './modules/users/users.module';
     UsersModule,
     RolesModule,
     ParkModule,
-    // Phase 4+: RestaurantsModule, EventsModule,
+    MediaModule,
+    RestaurantsModule,
+    // Phase 5+: EventsModule,
     //           TicketingModule, ScansModule, AnalyticsModule, MediaModule …
   ],
   providers: [

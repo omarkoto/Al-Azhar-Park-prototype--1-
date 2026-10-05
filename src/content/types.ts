@@ -28,6 +28,8 @@ export interface Restaurant {
   brand?: string
   phones: string[]
   menuUrl?: string
+  /** present when the restaurant has several menus (the first is also menuUrl) */
+  menus?: Array<{ label: string; url: string }>
   hours: string
   tagline: string
   body: string

@@ -1,5 +1,12 @@
 export const API_URL = ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000/api/v1').replace(/\/+$/, '')
 
+export interface PageMeta {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 export interface FieldIssue {
   path: string
   message: string
@@ -67,19 +74,28 @@ export class ApiClient {
   }
 
   async get<T>(path: string): Promise<T> {
-    return this.request<T>('GET', path)
+    return (await this.send<T>('GET', path)).data as T
+  }
+  /** A list endpoint: the items and the paging details ({ page, limit, total, totalPages }). */
+  async getPage<T>(path: string): Promise<{ items: T[]; meta: PageMeta }> {
+    const r = await this.send<T[]>('GET', path)
+    return { items: r.data ?? [], meta: r.meta ?? { page: 1, limit: 20, total: 0, totalPages: 1 } }
+  }
+  /** Uploads a file (multipart). The browser sets the multipart boundary itself, so no Content-Type is given. */
+  async upload<T>(path: string, form: FormData): Promise<T> {
+    return (await this.send<T>('POST', path, undefined, false, form)).data as T
   }
   async post<T>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>('POST', path, body)
+    return (await this.send<T>('POST', path, body)).data as T
   }
   async put<T>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>('PUT', path, body)
+    return (await this.send<T>('PUT', path, body)).data as T
   }
   async patch<T>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>('PATCH', path, body)
+    return (await this.send<T>('PATCH', path, body)).data as T
   }
   async delete<T>(path: string): Promise<T> {
-    return this.request<T>('DELETE', path)
+    return (await this.send<T>('DELETE', path)).data as T
   }
 
   /** Exchanges the refresh cookie for a new access token. Safe to call from several places at once. */
@@ -111,31 +127,36 @@ export class ApiClient {
     }
   }
 
-  private async request<T>(method: string, path: string, body?: unknown, retried = false): Promise<T> {
+  private async send<T>(method: string, path: string, body?: unknown, retried = false, form?: FormData): Promise<{ data?: T; meta?: PageMeta }> {
     const res = await this.doFetch(`${this.baseUrl}${path}`, {
       method,
       credentials: 'include',
       headers: {
         Accept: 'application/json',
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(body !== undefined && !form ? { 'Content-Type': 'application/json' } : {}),
         ...(this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: form ?? (body !== undefined ? JSON.stringify(body) : undefined),
     })
 
     if (res.status === 401 && !retried && !path.startsWith('/auth/login')) {
-      if (await this.refresh()) return this.request<T>(method, path, body, true)
+      if (await this.refresh()) return this.send<T>(method, path, body, true, form)
       this.onSessionLost()
     }
 
     const text = await res.text()
-    const json = text ? (JSON.parse(text) as { data?: T; error?: { code: string; message: string; details?: FieldIssue[] } }) : {}
+    const json = text ? (JSON.parse(text) as { data?: T; meta?: PageMeta; error?: { code: string; message: string; details?: FieldIssue[] } }) : {}
     if (!res.ok) {
       const e = json.error
       throw new ApiError(res.status, e?.code ?? 'ERROR', e?.message ?? `Request failed (${res.status})`, e?.details)
     }
-    return json.data as T
+    return { data: json.data, meta: json.meta }
   }
 }
 
 export const api = new ApiClient()
+
+/** Uploaded files are site-relative paths from the API; show them from the API's own address. */
+export function assetUrl(path: string): string {
+  return path.startsWith('/') ? `${new URL(API_URL).origin}${path}` : path
+}

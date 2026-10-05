@@ -9,16 +9,8 @@ import { ButtonLink, ExternalLink } from '../components/ui/Button'
 import { RestaurantVisual } from '../components/RestaurantVisual'
 import clsx from 'clsx'
 
-import restaurantHilltop from '../assets/images/restaurant-hilltop.webp'
-import restaurantLakeside from '../assets/images/restaurant-lakeside.webp'
-import restaurantMasrawya from '../assets/images/restaurant-masrawya.webp'
+import { resolveImage } from '../lib/imageMap'
 import restaurantsHero from '../assets/images/restaurants-hero-lakeside.webp'
-
-const images: Record<string, string> = {
-  hilltop: restaurantHilltop,
-  lakeside: restaurantLakeside,
-  masrawya: restaurantMasrawya,
-}
 
 // Hill-top Restaurant (Studio Masr) takes reservations through its Instagram, not the in-site form.
 const externalReservationLinks: Record<string, string> = {
@@ -55,7 +47,7 @@ export function Restaurants() {
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <RestaurantVisual
-                    src={images[restaurant.slug]}
+                    src={resolveImage(restaurant.image)}
                     alt={restaurant.name}
                     to={`/restaurants/${restaurant.slug}`}
                     className="max-w-sm md:max-w-md"

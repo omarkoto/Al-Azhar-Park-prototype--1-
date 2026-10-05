@@ -84,10 +84,14 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
       TICKET_TOKEN_PEPPER: ${TICKET_TOKEN_PEPPER:-}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      MEDIA_DIR: /app/storage/media
+    volumes:
+      - media-data:/app/storage/media
     ports:
       - '${API_PUBLISHED_PORT:-3000}:3000'
 
 volumes:
+  media-data:
   postgres-data:
   pgadmin-data:
   redis-data:

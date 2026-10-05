@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useSiteData } from '../lib/siteData'
 import { useContent } from '../lib/language'
 import { useSeo } from '../lib/seo'
 import { resolveImage } from '../lib/imageMap'
@@ -22,6 +23,7 @@ export function RestaurantDetail() {
   const { slug } = useParams()
   const content = useContent()
   const { t } = useTranslation()
+  const { restaurantsSettled } = useSiteData()
   const restaurant = content.restaurants.list.find((r) => r.slug === slug)
   const [menuOpen, setMenuOpen] = useState(false)
   const [reserveOpen, setReserveOpen] = useState(false)
@@ -32,6 +34,8 @@ export function RestaurantDetail() {
     path: `/restaurants/${slug ?? ''}`,
   })
 
+  // a restaurant created in the portal is not in the built-in list: wait for the live list before deciding it does not exist
+  if (!restaurant && !restaurantsSettled) return <div className="min-h-[60vh]" aria-busy="true" />
   if (!restaurant) return <Navigate to="/restaurants" replace />
 
   return (
@@ -96,7 +100,21 @@ export function RestaurantDetail() {
                   {t('reserveTable')}
                 </Button>
               )}
-              {restaurant.menuUrl ? (
+              {restaurant.menus && restaurant.menus.length > 1 ? (
+                restaurant.menus.map((menu) => (
+                  <ExternalLink
+                    key={menu.url}
+                    href={menu.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="ghost"
+                    className="w-full justify-center border-ink-900/20 text-ink-900"
+                  >
+                    <ForkIcon />
+                    {menu.label}
+                  </ExternalLink>
+                ))
+              ) : restaurant.menuUrl ? (
                 <ExternalLink
                   href={restaurant.menuUrl}
                   target="_blank"

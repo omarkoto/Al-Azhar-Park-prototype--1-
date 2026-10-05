@@ -6,6 +6,7 @@ Real Google Chrome driving the real stack: **API + staff portal + public website
 |---|---|
 | Login (wrong password, unknown account), session restoration after reload, permission-based menus, direct-URL access, the server refusing what the UI hides, logout | `tests/auth.spec.ts` |
 | Editing park information and contact details, opening hours, adding / editing / deleting special hours, rejecting overlapping periods, **the public website reflecting each change**, the website keeping its own marketing copy | `tests/cms.spec.ts` |
+| Media library (upload photo / PDF, refused script-as-image), creating a restaurant that closes after midnight, main photo, gallery, link and PDF menus, the website showing them with working uploaded files, reorder, hide, edit a built-in restaurant, in-use files protected | `tests/restaurants.spec.ts` |
 | Staff accounts: list, search, filter by role and status, invite, duplicate e-mail, role assignment, privilege limits, send reset, deactivate / activate (sign-in blocked and live sessions ended), self-protection; role creation and live permission changes | `tests/users.spec.ts` |
 
 ## Run it

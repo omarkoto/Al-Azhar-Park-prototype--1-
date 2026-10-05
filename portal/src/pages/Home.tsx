@@ -6,6 +6,8 @@ const SHORTCUTS = [
   { to: '/park', title: 'Park information', body: 'Name, tagline, description and the statistics shown on the website.', permission: 'park:read' },
   { to: '/contact', title: 'Contact details', body: 'Address, phones, e-mail, map link and social links.', permission: 'contact:read' },
   { to: '/hours', title: 'Opening hours', body: 'Weekly hours, holidays, Ramadan and temporary closures.', permission: 'hours:read' },
+  { to: '/restaurants', title: 'Restaurants', body: 'Restaurant details, hours, photos and menus.', permission: 'restaurants:read' },
+  { to: '/media', title: 'Media library', body: 'Upload and manage photos and PDF files.', permission: 'media:read' },
   { to: '/users', title: 'Staff accounts', body: 'Invite people, give them roles, deactivate accounts.', permission: 'users:read' },
   { to: '/roles', title: 'Roles & permissions', body: 'Who can do what in the portal.', permission: 'roles:read' },
 ]

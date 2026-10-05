@@ -62,6 +62,11 @@ export const envSchema = z
     LOGIN_MAX_FAILURES: z.coerce.number().int().min(3).max(20).default(5),
     LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
 
+    /** where uploaded files are stored on disk (the storage provider is swappable; see MediaStorage) */
+    MEDIA_DIR: z.string().min(1).default('./storage/media'),
+    MEDIA_MAX_IMAGE_MB: z.coerce.number().min(0.1).max(50).default(8),
+    MEDIA_MAX_PDF_MB: z.coerce.number().min(0.1).max(100).default(15),
+
     SEED_DEV_PASSWORD: z.string().min(12, 'must be at least 12 characters').optional(),
   })
   .superRefine((env, ctx) => {

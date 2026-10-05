@@ -148,13 +148,22 @@ export class HoursService {
     }
   }
 
-  /** The database also enforces the overlap rule, so two simultaneous edits cannot both slip through. */
-  private async guard<T>(fn: () => Promise<T>): Promise<T> {
+  /**
+   * The database also enforces the overlap rule, so two simultaneous edits cannot both slip through. When
+   * PostgreSQL resolves a race between two such inserts by cancelling one as a deadlock victim, that call is
+   * simply repeated: it then meets the other row and reports the overlap properly.
+   */
+  private async guard<T>(fn: () => Promise<T>, attempt = 1): Promise<T> {
     try {
       return await fn();
     } catch (error) {
-      if (String((error as Error).message).includes(OVERLAP_CONSTRAINT)) {
+      const message = String((error as Error).message);
+      if (message.includes(OVERLAP_CONSTRAINT)) {
         throw new AppException('SPECIAL_HOURS_OVERLAP', 'Another special-hours period with the same priority covers those dates.', 409);
+      }
+      if (attempt < 4 && /deadlock detected|could not serialize|P2034/i.test(message)) {
+        await new Promise((r) => setTimeout(r, 20 * attempt));
+        return this.guard(fn, attempt + 1);
       }
       throw error;
     }

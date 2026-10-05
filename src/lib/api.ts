@@ -12,3 +12,9 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   const body = (await res.json()) as { data: T }
   return body.data
 }
+
+/** Uploaded files come back as site-relative paths ("/api/v1/media/file/..."); put the API's own address in front. */
+export function assetUrl(path: string): string {
+  if (!API_URL || !path.startsWith('/')) return path
+  return `${new URL(API_URL).origin}${path}`
+}
