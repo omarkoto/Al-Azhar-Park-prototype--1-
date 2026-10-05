@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teal-50: #eef8f6;
+  --color-teal-700: #0f6b64;
+  --color-teal-800: #0c554f;
+  --color-teal-900: #0a4540;
+}
+
+html { color-scheme: light; }
+body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Naskh Arabic", sans-serif; }

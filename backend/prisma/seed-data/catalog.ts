@@ -52,6 +52,7 @@ export const PARK_SETTINGS = {
     { value: '72', labelEn: 'Acres of gardens and terraces', labelAr: 'فدانًا من الحدائق والشرفات' },
     { value: '1984', labelEn: 'Year the park was conceived', labelAr: 'العام الذي وُلدت فيه فكرة الحديقة' },
     { value: '2005', labelEn: 'Year the park opened to the public', labelAr: 'عام افتتاح الحديقة للجمهور' },
+    { value: '60', labelEn: "Ranked among the world's great public spaces", labelAr: 'مصنّفة ضمن أفضل ٦٠ مساحة عامة في العالم' },
   ],
 };
 

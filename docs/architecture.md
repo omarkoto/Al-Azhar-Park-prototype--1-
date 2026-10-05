@@ -1,18 +1,18 @@
-# Architecture (as built — Phase 1)
+# Architecture (as built — through Phase 3)
 
 This document describes what exists today. The overall plan and rationale are in [`backend-proposal.md`](backend-proposal.md).
 
 ## Repository
 
 ```
-/                 existing public website (Vite + React) — untouched
-backend/          NestJS API (this phase)
+/                 public website (Vite + React); reads live park data from the API when VITE_API_URL is set
+backend/          NestJS API
+portal/           staff portal (React + Vite), its own package.json
 docker/           Compose (PostgreSQL, pgAdmin; Redis & MailHog behind profiles) — ready, not required
 docs/             documentation
 .github/workflows backend CI
 ```
-`portal/` and `packages/shared/` are created in later phases (portal in Phase 9).
-**No npm workspaces yet:** `backend/` installs on its own so the website's `node_modules` and running dev server are never touched. Workspaces can be introduced when the portal needs shared code.
+**No npm workspaces:** `backend/`, `portal/` and the website each install on their own, so none can disturb the others' `node_modules`. Workspaces can be introduced if code is ever shared.
 
 ## Stack (versions chosen deliberately)
 
@@ -60,3 +60,5 @@ response ◄─ { data, meta? }  (EnvelopeInterceptor)        errors ◄─ { er
 ## What comes next
 
 Phase 2 — authentication & RBAC (done): see [`authentication.md`](authentication.md).
+Phase 3 — park CMS and staff portal (done): see [`park-cms.md`](park-cms.md).
+Phase 4 onward — restaurants, events, media, ticketing, scanning, analytics (not started).

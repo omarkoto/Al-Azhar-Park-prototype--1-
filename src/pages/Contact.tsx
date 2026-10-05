@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useLanguage } from '../lib/language'
 import { useAlt, useCredit } from '../lib/alt'
-import { DIRECTIONS_URL, MAPS_URL, mapEmbedUrl, telHref } from '../lib/location'
+import { telHref } from '../lib/location'
+import { useSiteData } from '../lib/siteData'
 import { useSeo } from '../lib/seo'
 import { Container } from '../components/ui/Container'
 import { Reveal } from '../components/ui/Reveal'
@@ -14,6 +15,7 @@ export function Contact() {
   const altText = useAlt()
   const credit = useCredit()
   const { contact } = content
+  const { links } = useSiteData()
   useSeo({ title: contact.title, description: contact.lead, path: '/contact' })
   const [sent, setSent] = useState(false)
 
@@ -43,24 +45,28 @@ export function Contact() {
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.faxLabel}</p>
-              <p dir="ltr" className="mt-2 text-start text-base font-medium text-ink-900">
-                {contact.fax}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.emailLabel}</p>
-              <a href={`mailto:${contact.email}`} className="mt-2 block text-base font-medium text-ink-900 hover:text-teal-700">
-                {contact.email}
-              </a>
-            </div>
+            {contact.fax && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.faxLabel}</p>
+                <p dir="ltr" className="mt-2 text-start text-base font-medium text-ink-900">
+                  {contact.fax}
+                </p>
+              </div>
+            )}
+            {contact.email && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.emailLabel}</p>
+                <a href={`mailto:${contact.email}`} className="mt-2 block text-base font-medium text-ink-900 hover:text-teal-700">
+                  {contact.email}
+                </a>
+              </div>
+            )}
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.mapTitle}</p>
               <div className="mt-3 overflow-hidden rounded-2xl border border-ink-900/10 shadow-sm">
                 <iframe
                   title={contact.mapTitle}
-                  src={mapEmbedUrl(lang)}
+                  src={links.embedUrl(lang)}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   allowFullScreen
@@ -68,10 +74,10 @@ export function Contact() {
                 />
               </div>
               <div className="mt-4 flex flex-wrap gap-3">
-                <ExternalLink href={DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" className="text-xs">
+                <ExternalLink href={links.directionsUrl} target="_blank" rel="noopener noreferrer" className="text-xs">
                   {contact.getDirections}
                 </ExternalLink>
-                <ExternalLink href={MAPS_URL} target="_blank" rel="noopener noreferrer" variant="ghost" className="border-ink-900/20 text-xs text-ink-900">
+                <ExternalLink href={links.mapsUrl} target="_blank" rel="noopener noreferrer" variant="ghost" className="border-ink-900/20 text-xs text-ink-900">
                   {contact.openInMaps}
                 </ExternalLink>
               </div>

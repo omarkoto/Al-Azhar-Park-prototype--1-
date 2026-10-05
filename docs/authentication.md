@@ -90,12 +90,13 @@ Permissions are `resource:action` strings (46 seeded). **Code never compares rol
 | POST `/users/:id/activate` · `/deactivate` | `users:write` | activate / deactivate |
 | PUT `/users/:id/roles` | `users:write` | replace roles |
 | POST `/users/:id/send-password-reset` | `users:write` | send a reset link |
-| GET `/roles` | `roles:read` | roles with permissions and user counts |
+| GET `/roles`, GET `/roles/:id` | `roles:read` | roles with permissions and user counts |
+| POST `/roles`, PATCH `/roles/:id`, PUT `/roles/:id/permissions`, DELETE `/roles/:id` | `roles:write` | role management (see [park-cms.md](park-cms.md)) |
 | GET `/permissions` | `permissions:read` | permission catalogue |
 
 ## Audit events (append-only `audit_logs`)
 
-`auth.login.success|failed|locked|blocked`, `auth.logout`, `auth.logout_all`, `auth.token.refreshed`, `auth.token.reuse_detected`, `auth.password.changed`, `auth.password.reset_requested|reset_completed`, `user.created|updated|activated|deactivated|roles_changed|password_reset_sent`. Each row has actor, entity, IP, user agent and request id. No secrets are ever stored.
+`auth.login.success|failed|locked|blocked`, `auth.logout`, `auth.logout_all`, `auth.token.refreshed`, `auth.token.reuse_detected`, `auth.password.changed`, `auth.password.reset_requested|reset_completed`, `user.created|updated|activated|deactivated|roles_changed|password_reset_sent`, `role.created|updated|permissions_changed|deleted`. Each row has actor, entity, IP, user agent and request id. No secrets are ever stored.
 
 ## Known limits
 

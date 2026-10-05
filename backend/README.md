@@ -64,6 +64,10 @@ All use the password in `SEED_DEV_PASSWORD` (default `ChangeMe-Dev-2026!`). They
 
 See [docs/authentication.md](../docs/authentication.md). Sign in at `POST /api/v1/auth/login`; every other route needs `Authorization: Bearer <access token>` unless marked public. Outside production the JWT secrets fall back to labelled dev-only values; production requires real ones.
 
+## Park content and portal
+
+See [docs/park-cms.md](../docs/park-cms.md). Public data: `GET /api/v1/public/site`. The staff portal lives in [../portal](../portal).
+
 ## Layout
 
 ```
