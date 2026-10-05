@@ -14,6 +14,18 @@ export class AppConfigService {
     return this.env[key];
   }
 
+  /**
+   * Signing secrets. Production requires real ones (enforced by the schema). Outside production a fixed,
+   * clearly-labelled development value is used so a fresh checkout works; it must never be deployed.
+   */
+  get jwtAccessSecret(): string {
+    return this.env.JWT_ACCESS_SECRET || 'dev-only-access-secret-do-not-deploy-0123456789';
+  }
+
+  get tokenHashSecret(): string {
+    return this.env.JWT_REFRESH_SECRET || 'dev-only-refresh-secret-do-not-deploy-9876543210';
+  }
+
   get isProduction(): boolean {
     return this.env.NODE_ENV === 'production';
   }

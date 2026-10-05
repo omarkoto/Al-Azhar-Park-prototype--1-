@@ -84,3 +84,13 @@ describe('validateEnv', () => {
     }
   });
 });
+
+describe('production CORS origins', () => {
+  const prod = {
+    NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40),
+  };
+  it('requires https for every origin (the website, the portal and any other)', () => {
+    expect(() => validateEnv({ ...prod, CORS_ORIGINS: 'https://alazharpark.com,https://admin.alazharpark.com' })).not.toThrow();
+    expect(() => validateEnv({ ...prod, CORS_ORIGINS: 'https://alazharpark.com,http://admin.alazharpark.com' })).toThrow(/must use https/);
+  });
+});

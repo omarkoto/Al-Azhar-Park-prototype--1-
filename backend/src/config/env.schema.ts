@@ -54,6 +54,13 @@ export const envSchema = z
     JWT_REFRESH_SECRET: z.string().optional(),
     TICKET_TOKEN_PEPPER: z.string().optional(),
 
+    ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(15),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(7),
+    SESSION_MAX_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+    PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(1440).default(30),
+    LOGIN_MAX_FAILURES: z.coerce.number().int().min(3).max(20).default(5),
+    LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
+
     SEED_DEV_PASSWORD: z.string().min(12, 'must be at least 12 characters').optional(),
   })
   .superRefine((env, ctx) => {
@@ -70,6 +77,11 @@ export const envSchema = z
     }
     if (env.CORS_ORIGINS.length === 0) {
       ctx.addIssue({ code: 'custom', path: ['CORS_ORIGINS'], message: 'must list the allowed origins in production' });
+    }
+    for (const origin of env.CORS_ORIGINS) {
+      if (!origin.startsWith('https://')) {
+        ctx.addIssue({ code: 'custom', path: ['CORS_ORIGINS'], message: `${origin} must use https in production` });
+      }
     }
     if (env.DATABASE_URL.includes('CHANGE_ME')) {
       ctx.addIssue({ code: 'custom', path: ['DATABASE_URL'], message: 'still contains the CHANGE_ME placeholder password' });

@@ -4,8 +4,10 @@ import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { SkipEnvelope } from '../common/http/envelope';
 import { PrismaService } from '../prisma/prisma.service';
+import { Public } from '../modules/auth/decorators';
 
 @ApiTags('health')
+@Public()
 @Controller('health')
 @SkipThrottle()
 @SkipEnvelope()

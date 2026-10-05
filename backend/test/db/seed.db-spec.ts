@@ -110,6 +110,14 @@ describe('seed data', () => {
       expect(content).toEqual(expect.arrayContaining(['events:publish', 'restaurants:write', 'menus:write', 'hours:write']));
     });
 
+    it('lets ADMIN grant every role except SUPER_ADMIN (no role is more powerful than ADMIN apart from the super administrator)', async () => {
+      const admin = new Set(await permissionsOf('ADMIN'));
+      for (const role of ['OPERATIONS', 'TICKET_STAFF', 'CONTENT_MANAGER', 'ANALYST']) {
+        for (const p of await permissionsOf(role)) expect(admin.has(p)).toBe(true);
+      }
+      expect(admin.has('roles:write')).toBe(false);
+    });
+
     it('lets only operations-level roles record cash payments on existing orders', async () => {
       for (const role of ['ADMIN', 'OPERATIONS']) expect(await permissionsOf(role)).toContain('payments:record_cash');
       for (const role of ['TICKET_STAFF', 'CONTENT_MANAGER', 'ANALYST']) expect(await permissionsOf(role)).not.toContain('payments:record_cash');

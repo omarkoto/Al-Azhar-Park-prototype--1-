@@ -90,8 +90,8 @@ export const ROLES: readonly RoleSeed[] = [
       'customers:read', 'customers:privacy',
       'orders:read', 'orders:cancel', 'payments:read', 'payments:record_cash', 'counter-sales:create',
       'tickets:read', 'tickets:cancel', 'tickets:resend',
-      'scans:create', 'scans:read', 'gates:read', 'gates:write',
-      'analytics:read', 'audit:read', 'settings:read', 'notifications:read',
+      'tickets:read_entry', 'scans:create', 'scans:read', 'scans:read_own', 'gates:read', 'gates:write',
+      'analytics:read', 'analytics:operations', 'analytics:content', 'audit:read', 'settings:read', 'notifications:read',
     ],
   },
   {

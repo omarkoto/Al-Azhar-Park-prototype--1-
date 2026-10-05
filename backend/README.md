@@ -60,6 +60,10 @@ All use the password in `SEED_DEV_PASSWORD` (default `ChangeMe-Dev-2026!`). They
 
 (Login itself arrives in Phase 2.)
 
+## Authentication
+
+See [docs/authentication.md](../docs/authentication.md). Sign in at `POST /api/v1/auth/login`; every other route needs `Authorization: Bearer <access token>` unless marked public. Outside production the JWT secrets fall back to labelled dev-only values; production requires real ones.
+
 ## Layout
 
 ```

@@ -59,4 +59,4 @@ response ◄─ { data, meta? }  (EnvelopeInterceptor)        errors ◄─ { er
 
 ## What comes next
 
-Phase 2 — authentication & RBAC. See [`backend-proposal.md`](backend-proposal.md) §6.
+Phase 2 — authentication & RBAC (done): see [`authentication.md`](authentication.md).

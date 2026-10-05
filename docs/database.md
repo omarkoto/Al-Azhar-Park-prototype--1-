@@ -17,7 +17,7 @@ PostgreSQL 16+ · Prisma 6 · 38 tables · schema in `backend/prisma/schema.pris
 
 | Group | Tables |
 |---|---|
-| Access | `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `refresh_tokens`, `password_reset_tokens` |
+| Access | `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `refresh_tokens`, `password_reset_tokens` (see [authentication.md](authentication.md)) |
 | Customers & privacy | `customers`, `data_requests` |
 | Ticket configuration | `ticket_audiences`, `ticket_types`, `ticket_prices`, `gates` |
 | Sales | `orders`, `order_items`, `payments`, `order_access_tokens`, `reference_counters` |
@@ -103,3 +103,16 @@ Privacy anonymisation is an `UPDATE` of the `customers` row (allowed); orders an
 ## Looking at the data (pgAdmin)
 
 Register the server as described in [`postgres-setup.md`](postgres-setup.md). After `npm run db:seed` you should see: 47 permissions, 6 roles, 8 `ticket_prices`, 7 `opening_hours`, 2 `gates`, 6 dev `users`. Use pgAdmin to look and query; never to change the schema.
+
+## Phase 2 additions (authentication)
+
+Migration `20261004201227_phase2_auth`:
+
+- `users.password_changed_at` (set on every change/reset).
+- `ck_users_failed_login`: `failed_login_count >= 0` and `token_version >= 0`.
+- Trigger `trg_refresh_tokens_guard`: a refresh token's hash, user, family and expiry never change; once revoked it can never be re-activated; once rotated its successor link cannot change.
+- Trigger `trg_password_reset_tokens_guard`: a reset token's hash, user and expiry never change; once used it can never be un-used.
+- Indexes on `refresh_tokens(expires_at)` and `password_reset_tokens(expires_at)` for the future purge job.
+- Seed: `ADMIN` now also holds `tickets:read_entry`, `scans:read_own`, `analytics:operations` and `analytics:content`, so an administrator can grant every role except SUPER_ADMIN.
+
+Migration `20261005041840_session_lifetime`: `refresh_tokens.session_started_at` (inherited by every rotated token, immutable via the guard trigger) enforces the absolute 30-day session limit.
