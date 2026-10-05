@@ -12,6 +12,15 @@ import { AnyAuthenticated, CurrentUser, Public, RequestCtx } from './decorators'
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './refresh-cookie';
 
 const MINUTE = 60_000;
+
+/**
+ * Per-address limit for the sensitive auth routes, scaled by AUTH_RATE_LIMIT_MULTIPLIER (default 1). The multiplier
+ * exists so the browser test suite, which signs in many times from one machine, is not throttled; production
+ * refuses any value above 1. Read lazily so it follows the validated environment.
+ */
+function authLimit(base: number): () => number {
+  return () => base * Math.max(1, Number(process.env.AUTH_RATE_LIMIT_MULTIPLIER) || 1);
+}
 /** Header a non-browser client sends to receive the refresh token in the JSON body instead of an httpOnly cookie. */
 const DELIVERY_HEADER = 'x-token-delivery';
 
@@ -24,7 +33,7 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(10), ttl: MINUTE } })
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'Sign in to the portal with e-mail and password' })
@@ -34,7 +43,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 30, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(30), ttl: MINUTE } })
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({ summary: 'Exchange the refresh token (cookie or body) for a new access token; the refresh token rotates' })
@@ -44,7 +53,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 30, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(30), ttl: MINUTE } })
   @Post('logout')
   @HttpCode(200)
   @ApiOperation({ summary: 'End this session (revokes the refresh token family). Safe to call repeatedly.' })
@@ -75,7 +84,7 @@ export class AuthController {
 
   @AnyAuthenticated()
   @ApiBearerAuth()
-  @Throttle({ default: { limit: 10, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(10), ttl: MINUTE } })
   @Post('change-password')
   @HttpCode(200)
   @ApiOperation({ summary: 'Change your own password. Every session is ended; sign in again.' })
@@ -91,7 +100,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(5), ttl: MINUTE } })
   @Post('forgot-password')
   @HttpCode(200)
   @ApiOperation({ summary: 'Request a password-reset link. The answer is always the same, so accounts cannot be probed.' })
@@ -101,7 +110,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: MINUTE } })
+  @Throttle({ default: { limit: authLimit(10), ttl: MINUTE } })
   @Post('reset-password')
   @HttpCode(200)
   @ApiOperation({ summary: 'Set a new password with a reset (or invitation) token. Every session is ended.' })

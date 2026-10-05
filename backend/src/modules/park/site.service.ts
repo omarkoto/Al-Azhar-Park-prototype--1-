@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { addDays, parkDateOf } from '../ticketing/rules/calendar';
+import { parkDateOf } from '../ticketing/rules/calendar';
 import { resolveHours, SpecialHours as RuleSpecial, WeeklyHours } from '../ticketing/rules/opening-hours';
 import { minutesToHhmm } from '../ticketing/rules/calendar';
 import { HoursService, SpecialView } from './hours.service';
@@ -19,7 +19,7 @@ export interface SiteSnapshot {
   contact: Omit<ContactView, 'updatedAt'>;
   hours: {
     weekly: Array<{ dayOfWeek: number; isClosed: boolean; opens: string | null; closes: string | null }>;
-    /** active special periods that end today or later, within the next year */
+    /** every active special period that ends today or later */
     special: Omit<SpecialView, 'id' | 'isActive' | 'priority'>[];
     today: TodayView;
   };
@@ -39,8 +39,8 @@ export class SiteService {
       this.park.getPark(), this.park.getContact(), this.hours.getWeekly(), this.hours.listSpecial('upcoming'),
     ]);
     const today = parkDateOf(now);
-    const horizon = addDays(today, 365);
-    const special = upcoming.filter((s) => s.isActive && s.dateFrom <= horizon);
+    // every active period that has not ended yet, however far ahead it starts: nothing is hidden by distance
+    const special = upcoming.filter((s) => s.isActive);
 
     const rule = resolveHours(today, weekly as WeeklyHours[], special as unknown as RuleSpecial[]);
     const covering = special

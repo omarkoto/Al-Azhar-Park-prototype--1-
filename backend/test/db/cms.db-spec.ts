@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { createTestPrisma, resetDatabase, seedAll } from '../helpers/db';
+import { eventWindow } from '../../src/modules/ticketing/rules';
 import { expectDbError } from '../helpers/fixtures';
 
 describe('park content integrity (database level)', () => {
@@ -83,6 +84,26 @@ describe('park content integrity (database level)', () => {
       await prisma.specialHours.create({ data: sp({ priority: 50 }) }); // same days, higher priority
       await prisma.specialHours.create({ data: sp({ isActive: false }) }); // inactive draft
       expect(await prisma.specialHours.count()).toBe(4);
+    });
+  });
+
+  describe('events can cross midnight', () => {
+    const base = { slug: 'night-concert', titleEn: 'Night concert', titleAr: 'حفل ليلي', shortDescriptionEn: 's', shortDescriptionAr: 's', descriptionEn: 'd', descriptionAr: 'd' };
+
+    it('stores an event from 20:00 to 01:00 the next day and keeps it on the day it starts', async () => {
+      const w = eventWindow('2026-10-10', '20:00', '01:00');
+      const e = await prisma.event.create({ data: { ...base, startsAt: w.startsAt, endsAt: w.endsAt } });
+      expect(e.endsAt!.getTime() - e.startsAt.getTime()).toBe(5 * 3_600_000);
+      const [row] = await prisma.$queryRaw<Array<{ starts: string; ends: string }>>`
+        SELECT azharpark_date_of(starts_at)::text AS starts, azharpark_date_of(ends_at)::text AS ends FROM events WHERE id = ${e.id}::uuid`;
+      expect(row).toEqual({ starts: '2026-10-10', ends: '2026-10-11' });
+    });
+
+    it('refuses an end that is not after the start, and allows an open-ended event', async () => {
+      const w = eventWindow('2026-10-10', '20:00', '22:00');
+      await expectDbError(prisma.event.create({ data: { ...base, startsAt: w.startsAt, endsAt: w.startsAt } }), /ck_events_range/);
+      await expectDbError(prisma.event.create({ data: { ...base, startsAt: w.endsAt, endsAt: w.startsAt } }), /ck_events_range/);
+      expect((await prisma.event.create({ data: { ...base, startsAt: w.startsAt, endsAt: null } })).endsAt).toBeNull();
     });
   });
 });

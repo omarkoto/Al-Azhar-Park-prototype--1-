@@ -92,6 +92,13 @@ describe('park content: contact, information, opening hours (e2e)', () => {
       expect(labels).toEqual(['Sooner', 'Later']);
     });
 
+    it('publishes periods however far ahead they start (there is no look-ahead limit)', async () => {
+      await call('post', '/special-hours', 'content', special({ dateFrom: '2031-12-24', dateTo: '2031-12-26', labelEn: 'Five years away', priority: 5 })).expect(201);
+      await call('post', '/special-hours', 'content', special({ dateFrom: '2040-01-01', dateTo: '2040-01-02', labelEn: 'Fourteen years away', priority: 6 })).expect(201);
+      const labels = (await call('get', '/public/site').expect(200)).body.data.hours.special.map((s: { labelEn: string }) => s.labelEn);
+      expect(labels).toEqual(['Five years away', 'Fourteen years away']);
+    });
+
     it('reflects an edit straight away', async () => {
       await call('put', '/park', 'content', { ...validPark, taglineEn: 'A brand new tagline' }).expect(200);
       expect((await call('get', '/public/site').expect(200)).body.data.park.taglineEn).toBe('A brand new tagline');

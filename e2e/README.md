@@ -1,0 +1,29 @@
+# Browser (end-to-end) tests
+
+Real Google Chrome driving the real stack: **API + staff portal + public website**, against the **test database** (never your development data).
+
+| What it covers | File |
+|---|---|
+| Login (wrong password, unknown account), session restoration after reload, permission-based menus, direct-URL access, the server refusing what the UI hides, logout | `tests/auth.spec.ts` |
+| Editing park information and contact details, opening hours, adding / editing / deleting special hours, rejecting overlapping periods, **the public website reflecting each change**, the website keeping its own marketing copy | `tests/cms.spec.ts` |
+| Staff accounts: list, search, filter by role and status, invite, duplicate e-mail, role assignment, privilege limits, send reset, deactivate / activate (sign-in blocked and live sessions ended), self-protection; role creation and live permission changes | `tests/users.spec.ts` |
+
+## Run it
+
+Prerequisites: Google Chrome installed; `backend/.env` with `DATABASE_URL` / `TEST_DATABASE_URL` (see [../docs/postgres-setup.md](../docs/postgres-setup.md)); `npm install` done in `backend/`, `portal/`, the repository root and here.
+
+```bash
+cd e2e
+npm install
+npm test            # prepares the stack, then runs the browser tests (about 1–2 minutes)
+npm run test:headed # watch the browser
+npm run report      # open the HTML report of the last run (screenshots/traces of failures)
+```
+
+`npm test` first (`scripts/prepare.mjs`) builds the API, applies the migrations to the **test** database and resets + seeds it (`backend/scripts/reset-e2e-db.ts` refuses any database whose name does not contain "test"). Playwright then starts, on private ports, the API (3100), the portal (5274) and the website (5273, pointed at that API) and stops them afterwards. The seeded users all have the password `E2e-Password-2026!` (override with `E2E_PASSWORD`).
+
+Notes
+- Another Chrome build: `CHROME_PATH="C:\path\to\chrome.exe" npm test`.
+- The API runs with `AUTH_RATE_LIMIT_MULTIPLIER=50` so the many sign-ins of the suite are not throttled. The setting is refused in production.
+- The specs run one after another and share state; each cleans up what it changes on the public website. Every `npm test` starts from a freshly reset database, so runs are repeatable.
+- Ports 3100, 5273 and 5274 must be free.

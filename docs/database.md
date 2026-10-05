@@ -120,3 +120,5 @@ Migration `20261005041840_session_lifetime`: `refresh_tokens.session_started_at`
 ## Phase 3 additions (park CMS)
 
 Migrations `20261005120000_phase3_cms_integrity` and `20261005120100_fix_contact_coordinates`: coordinate range and both-or-none CHECK, at most 6 phones, https-only map link, statistics must be a JSON array, special-hours labels not blank, priority 0–100, a temporary closure must be closed, and the exclusion constraint `ex_special_hours_no_overlap` (two active periods with the same priority cannot share a day). Seed: the park statistics now include the fourth one shown on the site.
+
+Migration `20261006000000_event_time_range`: `ck_events_range` (an event's end must be after its start). Events store full timestamps, so an event may end after midnight (see "Time model" in [park-cms.md](park-cms.md)). The users API also reports `isLocked` (no schema change).

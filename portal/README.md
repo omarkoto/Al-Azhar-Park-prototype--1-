@@ -14,3 +14,5 @@ npm run build
 Sign in with a seeded development user (see ../backend/README.md), e.g. `content@azharpark.test` (content manager) or `superadmin@azharpark.test` (roles). The menu shows only what your permissions allow; the server enforces them regardless.
 
 Production: serve on its own origin (for example `admin.alazharpark.com`) and add that origin to the API's `CORS_ORIGINS`.
+
+Browser tests for the portal and website together live in [../e2e](../e2e/README.md).

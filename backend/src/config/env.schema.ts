@@ -46,6 +46,7 @@ export const envSchema = z
       ),
     TRUST_PROXY: z.coerce.number().int().min(0).max(10).default(0),
     RATE_LIMIT_TTL_SECONDS: z.coerce.number().int().min(1).default(60),
+    AUTH_RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(100).default(1),
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
     SWAGGER_ENABLED: bool.default(true),
 
@@ -74,6 +75,9 @@ export const envSchema = z
     }
     if (env.JWT_ACCESS_SECRET && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
       ctx.addIssue({ code: 'custom', path: ['JWT_REFRESH_SECRET'], message: 'must differ from JWT_ACCESS_SECRET' });
+    }
+    if (env.AUTH_RATE_LIMIT_MULTIPLIER > 1) {
+      ctx.addIssue({ code: 'custom', path: ['AUTH_RATE_LIMIT_MULTIPLIER'], message: 'must be 1 in production (it weakens brute-force protection)' });
     }
     if (env.CORS_ORIGINS.length === 0) {
       ctx.addIssue({ code: 'custom', path: ['CORS_ORIGINS'], message: 'must list the allowed origins in production' });

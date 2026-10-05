@@ -31,7 +31,7 @@ The weekly and special hours are the **same tables the ticket-sales rules read**
 
 | Endpoint | Access | Notes |
 |---|---|---|
-| GET `/public/site` | public | park, contact, weekly hours, upcoming active special periods (next 365 days), today's resolved hours. `Cache-Control: public, max-age=60`. No ids, priorities or editor identities |
+| GET `/public/site` | public | park, contact, weekly hours, all active special periods that have not ended yet (no look-ahead limit), today's resolved hours. `Cache-Control: public, max-age=60`. No ids, priorities or editor identities |
 | GET/PUT `/park` | `park:read` / `park:write` | PUT replaces the whole record |
 | GET/PUT `/contact` | `contact:read` / `contact:write` | empty strings become null |
 | GET/PUT `/opening-hours` | `hours:read` / `hours:write` | PUT needs all 7 days |
@@ -55,12 +55,23 @@ Validation (Zod, server-side; the portal only displays the messages): phone = di
 
 ## Portal (`portal/`)
 
-React + Vite + Tailwind, its own `package.json`. Pages: Home, Park information, Contact details, Opening hours (weekly + special periods), Roles & permissions, Login. See [portal/README.md](../portal/README.md). Security: the access token lives only in memory; the refresh token is the httpOnly cookie ([authentication.md](authentication.md)); all concurrent 401s share one refresh call (a second parallel refresh would look like token theft); menu items are hidden by permission but the server is the authority.
+React + Vite + Tailwind, its own `package.json`. Pages: Home, Park information, Contact details, Opening hours (weekly + special periods), Staff accounts, Roles & permissions, Login. See [portal/README.md](../portal/README.md). Security: the access token lives only in memory; the refresh token is the httpOnly cookie ([authentication.md](authentication.md)); all concurrent 401s share one refresh call (a second parallel refresh would look like token theft); menu items are hidden by permission but the server is the authority.
+
+## Staff accounts page
+
+`/users` (needs `users:read`; changing things needs `users:write`): list with search, role filter, active/deactivated filter and paging; **invite** a person (name, e-mail, roles) who receives a one-time link to choose their own password; open an account to see e-mail, status (active / deactivated / locked), last sign-in and creation date; edit the name; **assign roles**; **activate / deactivate**; **send a password reset** (also clears a lock). Roles you cannot grant (they contain permissions you lack) are disabled, you cannot change yourself, and someone with more access than you is view-only. These are hints: **the API enforces every rule** (`users:write`, the anti-escalation rule, no self-changes) whatever the page shows, which the browser suite checks by calling the API directly as an analyst.
+
+## Browser tests
+
+See [../e2e/README.md](../e2e/README.md).
 
 ## Known limits
 
 - Portal is English-only; content fields are bilingual (Arabic inputs are right-to-left).
 - Park name/tagline/description are not yet displayed by the site (see above).
-- No users page in the portal yet (the API exists).
-- Special periods beyond 365 days ahead are not published to the website yet (they remain in the portal and apply to ticket rules).
-- Overnight hours (closing after midnight) are not supported.
+- **Park opening hours cannot cross midnight** (see "Time model"): opens < closes on the same day is enforced everywhere.
+
+## Time model (cross-midnight)
+
+- **Park opening hours** (`opening_hours`, `special_hours`) are wall-clock times of one day with `opens < closes` (a database CHECK, the API validation, the sales rules and the website formatter all assume it). The normal hours are 09:00–22:00 every day. Supporting a park that closes after midnight (for example 10:00–01:00) is a larger change, deliberately not made now: it needs a "closes next day" flag in both tables, the same-day cut-off rule to compare against the next-day closing, the "belongs to which day" rule for tickets sold late, and the website formatter. Until then the latest closing time is 23:59.
+- **Events** are different and already support crossing midnight: `events.starts_at` and `ends_at` are full timestamps (`timestamptz`), guarded by `ck_events_range` (an end must be after the start). `eventWindow(date, '20:00', '01:00')` (in `backend/src/modules/ticketing/rules/event-window.ts`) turns what an editor types into the two timestamps: an end time not later than the start time means "the next day". An event belongs to the day it starts on. It is correct across daylight-saving changes (a wall-clock time that is skipped is refused; one that happens twice uses its first occurrence). The Events phase will use this helper.

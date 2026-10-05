@@ -16,7 +16,7 @@ import { ListUsersQueryDto } from './users.dto';
 const ADMIN_PERMISSION = 'roles:write';
 
 const userSelect = {
-  id: true, email: true, fullName: true, isActive: true, lastLoginAt: true, createdAt: true,
+  id: true, email: true, fullName: true, isActive: true, lastLoginAt: true, lockedUntil: true, createdAt: true,
   roles: { select: { role: { select: { code: true, name: true, permissions: { select: { permission: { select: { code: true } } } } } } } },
 } satisfies Prisma.UserSelect;
 type UserRow = Prisma.UserGetPayload<{ select: typeof userSelect }>;
@@ -27,12 +27,14 @@ export interface UserView {
   fullName: string;
   isActive: boolean;
   lastLoginAt: Date | null;
+  /** too many wrong passwords: temporarily unable to sign in (a password reset clears it) */
+  isLocked: boolean;
   createdAt: Date;
   roles: Array<{ code: string; name: string }>;
 }
 
 const view = (u: UserRow): UserView => ({
-  id: u.id, email: u.email, fullName: u.fullName, isActive: u.isActive, lastLoginAt: u.lastLoginAt, createdAt: u.createdAt,
+  id: u.id, email: u.email, fullName: u.fullName, isActive: u.isActive, lastLoginAt: u.lastLoginAt, isLocked: !!u.lockedUntil && u.lockedUntil > new Date(), createdAt: u.createdAt,
   roles: u.roles.map((r) => ({ code: r.role.code, name: r.role.name })).sort((a, b) => a.code.localeCompare(b.code)),
 });
 

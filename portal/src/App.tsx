@@ -6,6 +6,7 @@ import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { ParkPage } from './pages/Park'
 import { RolesPage } from './pages/Roles'
+import { UsersPage } from './pages/Users'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="park" element={<RequirePermission permission="park:read"><ParkPage /></RequirePermission>} />
         <Route path="contact" element={<RequirePermission permission="contact:read"><ContactPage /></RequirePermission>} />
         <Route path="hours" element={<RequirePermission permission="hours:read"><HoursPage /></RequirePermission>} />
+        <Route path="users" element={<RequirePermission permission="users:read"><UsersPage /></RequirePermission>} />
         <Route path="roles" element={<RequirePermission permission="roles:read"><RolesPage /></RequirePermission>} />
         <Route path="*" element={<p className="text-sm text-stone-500">Page not found.</p>} />
       </Route>

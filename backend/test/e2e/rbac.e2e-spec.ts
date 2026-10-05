@@ -116,6 +116,20 @@ describe('authorization and user management (e2e)', () => {
       await call('get', '/users/00000000-0000-4000-8000-000000000000', token).expect(404);
     });
 
+    it('reports account status: last sign-in and whether the account is locked', async () => {
+      const token = await tokenOf('admin@azharpark.test');
+      const target = await createUser(prisma, { role: 'ANALYST' });
+      let res = await call('get', `/users/${target.id}`, token).expect(200);
+      expect(res.body.data).toMatchObject({ isActive: true, isLocked: false, lastLoginAt: null });
+      await login(app, target.email);
+      await prisma.user.update({ where: { id: target.id }, data: { lockedUntil: new Date(Date.now() + 600_000) } });
+      res = await call('get', `/users/${target.id}`, token).expect(200);
+      expect(res.body.data.isLocked).toBe(true);
+      expect(res.body.data.lastLoginAt).not.toBeNull();
+      await prisma.user.update({ where: { id: target.id }, data: { lockedUntil: new Date(Date.now() - 1000) } });
+      expect((await call('get', `/users/${target.id}`, token)).body.data.isLocked).toBe(false);
+    });
+
     it('invites a user: random unusable password, one-time link, they choose their own password, then sign in', async () => {
       const token = await tokenOf('admin@azharpark.test');
       const email = `invited.${Date.now()}@azharpark.test`;

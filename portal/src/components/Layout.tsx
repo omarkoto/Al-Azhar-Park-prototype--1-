@@ -7,6 +7,7 @@ const NAV: Array<{ to: string; label: string; permission: string }> = [
   { to: '/park', label: 'Park information', permission: 'park:read' },
   { to: '/contact', label: 'Contact details', permission: 'contact:read' },
   { to: '/hours', label: 'Opening hours', permission: 'hours:read' },
+  { to: '/users', label: 'Staff accounts', permission: 'users:read' },
   { to: '/roles', label: 'Roles & permissions', permission: 'roles:read' },
 ]
 

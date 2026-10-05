@@ -94,3 +94,13 @@ describe('production CORS origins', () => {
     expect(() => validateEnv({ ...prod, CORS_ORIGINS: 'https://alazharpark.com,http://admin.alazharpark.com' })).toThrow(/must use https/);
   });
 });
+
+describe('AUTH_RATE_LIMIT_MULTIPLIER', () => {
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  it('is 1 by default, can be raised outside production, and is refused above 1 in production', () => {
+    expect(validateEnv({ DATABASE_URL: 'postgresql://u:p@localhost/x' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(1);
+    expect(validateEnv({ DATABASE_URL: 'postgresql://u:p@localhost/x', AUTH_RATE_LIMIT_MULTIPLIER: '20' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(20);
+    expect(() => validateEnv({ ...prod, AUTH_RATE_LIMIT_MULTIPLIER: '5' })).toThrow(/AUTH_RATE_LIMIT_MULTIPLIER/);
+    expect(() => validateEnv({ ...prod })).not.toThrow();
+  });
+});

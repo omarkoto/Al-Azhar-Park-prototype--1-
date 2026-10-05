@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, errorMessage } from './api'
 
 export interface Loaded<T> {
@@ -14,17 +14,24 @@ export function useLoad<T>(path: string | null): Loaded<T> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(path !== null)
   const [error, setError] = useState<string | null>(null)
+  // only the newest request may update the screen: an older, slower response must never overwrite newer data
+  // (or the edits someone has already started typing — React StrictMode, for one, issues two loads in development)
+  const latest = useRef(0)
 
   const reload = useCallback(async () => {
     if (path === null) return
+    const mine = ++latest.current
     setLoading(true)
     try {
-      setData(await api.get<T>(path))
-      setError(null)
+      const result = await api.get<T>(path)
+      if (mine === latest.current) {
+        setData(result)
+        setError(null)
+      }
     } catch (e) {
-      setError(errorMessage(e))
+      if (mine === latest.current) setError(errorMessage(e))
     } finally {
-      setLoading(false)
+      if (mine === latest.current) setLoading(false)
     }
   }, [path])
 
