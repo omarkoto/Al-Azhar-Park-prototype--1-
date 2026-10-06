@@ -67,7 +67,7 @@ const resources = {
       zoomReset: 'Reset zoom',
       addToCalendar: 'Add to calendar',
       googleCalendar: 'Google Calendar',
-      appleCalendar: 'Apple / iOS Calendar',
+      appleCalendar: 'iOS Calendar',
       addToWallet: 'Add your ticket to your phone',
       appleWallet: 'Add to Apple Wallet',
       googleWallet: 'Add to Google Wallet',
