@@ -72,6 +72,7 @@ test.describe.serial('media library and restaurants', () => {
     await page.getByLabel('Opens').fill('18:00')
     await page.getByLabel('Closes').fill('01:00')
     await page.getByLabel('Phone numbers').fill('0100 555 6666')
+    await page.getByLabel('Instagram').fill('https://www.instagram.com/rooftop.grill/')
 
     // invalid input is explained next to the field and nothing is created
     await page.getByLabel('Website', { exact: true }).fill('http://not-secure.example')
@@ -126,10 +127,20 @@ test.describe.serial('media library and restaurants', () => {
     const site = await freshSitePage(browser, '/restaurants')
     await expect(site.getByRole('heading', { name: 'Rooftop Grill' })).toBeVisible({ timeout: 15_000 })
     await expect(site.getByText('18:00 – 01:00')).toBeVisible()
+    // only the restaurant that has an Instagram address gets a Reserve button; the built-in ones have none and show none
+    await expect(site.getByRole('link', { name: 'Reserve a table' })).toHaveCount(1)
+    await site.goto(`${SITE}/restaurants/hilltop`)
+    await expect(site.getByRole('heading', { name: 'Hill-top Restaurant' }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(site.getByRole('link', { name: 'Reserve a table' })).toHaveCount(0)
+    await expect(site.getByRole('button', { name: 'Reserve a table' })).toHaveCount(0)
+    await site.goto(`${SITE}/restaurants`)
 
     await site.goto(`${SITE}/restaurants/rooftop-grill`)
     await expect(site.getByRole('heading', { name: 'Rooftop Grill' }).first()).toBeVisible({ timeout: 15_000 })
     await expect(site.getByText('Charcoal grills with a view of the Citadel.')).toBeVisible()
+    // "Reserve a table" goes straight to the restaurant's own Instagram: no form, no booking stored
+    await expect(site.getByRole('link', { name: 'Reserve a table' })).toHaveAttribute('href', 'https://www.instagram.com/rooftop.grill/')
+    await expect(site.getByRole('button', { name: 'Reserve a table' })).toHaveCount(0)
     await expect(site.getByRole('link', { name: 'Dinner menu' })).toHaveAttribute('href', 'https://example.com/dinner.pdf')
     const lunch = site.getByRole('link', { name: 'Lunch menu' })
     await expect(lunch).toHaveAttribute('href', /localhost:3100\/api\/v1\/media\/file\/.+\.pdf$/)

@@ -206,9 +206,8 @@ function DetailsTab({ restaurant, isNew, onSaved }: { restaurant: RestaurantData
           <TextInput label="Closes" type="time" value={form.closesAt} onChange={(e) => set('closesAt', e.target.value)} error={errors.closesAt} />
           <TextArea label="Phone numbers" hint="One per line, up to 6." value={form.phones} onChange={(e) => set('phones', e.target.value)} error={errors.phones} />
           <div className="space-y-4">
-            <TextInput label="Reservation link" type="url" value={form.reservationUrl} onChange={(e) => set('reservationUrl', e.target.value)} error={errors.reservationUrl} placeholder="https://" />
             <TextInput label="Website" type="url" value={form.websiteUrl} onChange={(e) => set('websiteUrl', e.target.value)} error={errors.websiteUrl} placeholder="https://" />
-            <TextInput label="Instagram" type="url" value={form.instagramUrl} onChange={(e) => set('instagramUrl', e.target.value)} error={errors.instagramUrl} placeholder="https://" />
+            <TextInput label="Instagram" type="url" value={form.instagramUrl} onChange={(e) => set('instagramUrl', e.target.value)} error={errors.instagramUrl} placeholder="https://www.instagram.com/…" hint="The website's “Reserve a table” button opens this page. Without it, the button is not shown." />
           </div>
         </fieldset>
       </Card>

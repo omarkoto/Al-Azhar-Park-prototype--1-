@@ -27,6 +27,8 @@ export interface Restaurant {
   name: string
   brand?: string
   phones: string[]
+  /** where "Reserve a table" goes: the restaurant's own Instagram (set in the portal); no button without it */
+  instagramUrl?: string
   menuUrl?: string
   /** present when the restaurant has several menus (the first is also menuUrl) */
   menus?: Array<{ label: string; url: string }>

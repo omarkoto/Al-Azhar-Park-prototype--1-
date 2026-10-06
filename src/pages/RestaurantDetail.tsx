@@ -10,14 +10,8 @@ import { Reveal } from '../components/ui/Reveal'
 import { Eyebrow } from '../components/ui/SectionHeading'
 import { Button, ExternalLink } from '../components/ui/Button'
 import { Modal } from '../components/ui/Modal'
-import { ReservationForm } from '../components/ReservationForm'
 import { RestaurantVisual } from '../components/RestaurantVisual'
 import restaurantsHero from '../assets/images/restaurants-hero.webp'
-
-// Hill-top Restaurant (Studio Masr) takes reservations through its Instagram, not the in-site form.
-const externalReservationLinks: Record<string, string> = {
-  hilltop: 'https://www.instagram.com/studio.masr/?hl=en',
-}
 
 export function RestaurantDetail() {
   const { slug } = useParams()
@@ -26,7 +20,6 @@ export function RestaurantDetail() {
   const { restaurantsSettled } = useSiteData()
   const restaurant = content.restaurants.list.find((r) => r.slug === slug)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [reserveOpen, setReserveOpen] = useState(false)
 
   useSeo({
     title: restaurant?.name ?? content.restaurants.title,
@@ -84,22 +77,12 @@ export function RestaurantDetail() {
               <span dir="ltr">{restaurant.hours}</span>
             </p>
             <div className="mt-6 space-y-3">
-              {externalReservationLinks[restaurant.slug] ? (
-                <ExternalLink
-                  href={externalReservationLinks[restaurant.slug]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full justify-center"
-                >
+              {restaurant.instagramUrl ? (
+                <ExternalLink href={restaurant.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-full justify-center">
                   <CalendarIcon />
                   {t('reserveTable')}
                 </ExternalLink>
-              ) : (
-                <Button className="w-full justify-center" onClick={() => setReserveOpen(true)}>
-                  <CalendarIcon />
-                  {t('reserveTable')}
-                </Button>
-              )}
+              ) : null}
               {restaurant.menus && restaurant.menus.length > 1 ? (
                 restaurant.menus.map((menu) => (
                   <ExternalLink
@@ -153,9 +136,6 @@ export function RestaurantDetail() {
         <p className="text-sm leading-relaxed text-ink-900/70">{t('menuComingSoonBody')}</p>
       </Modal>
 
-      <Modal open={reserveOpen} onClose={() => setReserveOpen(false)} title={t('reservationFormTitle')}>
-        <ReservationForm restaurantName={restaurant.name} />
-      </Modal>
     </div>
   )
 }

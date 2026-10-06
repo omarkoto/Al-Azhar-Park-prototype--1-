@@ -280,6 +280,26 @@ describe('restaurants, menus and photos (e2e)', () => {
       await call('put', `/menus/${m.id}`, 'ops', { nameEn: 'x', nameAr: 'y', externalUrl: 'https://example.com' }).expect(403);
     });
 
+    it('replaces an uploaded menu PDF with another one, and the old file can then be deleted', async () => {
+      const r = await create();
+      const first = await pdf('old.pdf');
+      const second = await pdf('new.pdf');
+      const m = (await call('post', `/restaurants/${r.id}/menus`, 'content', { nameEn: 'Menu', nameAr: 'قائمة', pdfMediaId: first.id }).expect(201)).body.data;
+      const res = await call('put', `/menus/${m.id}`, 'content', { nameEn: 'Menu', nameAr: 'قائمة', pdfMediaId: second.id }).expect(200);
+      expect(res.body.data.url).toBe(second.url);
+      expect((await call('get', '/public/restaurants/rooftop').expect(200)).body.data.menus[0].url).toBe(second.url);
+      await call('delete', `/media/${first.id}`, 'content').expect(200);
+      await call('delete', `/media/${second.id}`, 'content').expect(409);
+    });
+
+    it("stores each restaurant's own Instagram address (https only), which the website uses for 'Reserve a table'", async () => {
+      const r = await create({ instagramUrl: 'https://www.instagram.com/rooftop.grill/' });
+      expect(r.instagramUrl).toBe('https://www.instagram.com/rooftop.grill/');
+      expect((await call('get', '/public/restaurants/rooftop').expect(200)).body.data.instagramUrl).toBe('https://www.instagram.com/rooftop.grill/');
+      await call('put', `/restaurants/${r.id}`, 'content', valid({ instagramUrl: 'http://instagram.com/x' })).expect(400);
+      expect((await call('put', `/restaurants/${r.id}`, 'content', valid({ instagramUrl: '' })).expect(200)).body.data.instagramUrl).toBeNull();
+    });
+
     it('reorders menus; the website shows only active menus, in that order', async () => {
       const r = await create();
       const add = async (nameEn: string, isActive = true) =>
@@ -307,7 +327,7 @@ describe('restaurants, menus and photos (e2e)', () => {
       expect(res.headers['cache-control']).toMatch(/public, max-age=60/);
       const list = res.body.data;
       expect(slugs(list)).toEqual(['hilltop', 'lakeside', 'masrawya']);
-      expect(list[0]).toMatchObject({ nameEn: 'Hill-top Restaurant', nameAr: 'مطعم القمة', opensAt: '12:00', closesAt: '00:00', closesAfterMidnight: true, hero: null, gallery: [] });
+      expect(list[0]).toMatchObject({ nameEn: 'Hill-top Restaurant', nameAr: 'مطعم القمة', opensAt: '12:00', closesAt: '00:00', closesAfterMidnight: true, instagramUrl: null, hero: null, gallery: [] }); // no Instagram address is built in: it comes from the portal
       expect(list[0].menus[0]).toMatchObject({ kind: 'link', url: expect.stringMatching(/^https:\/\//) });
       expect(JSON.stringify(list)).not.toMatch(/"id"|updatedAt|isActive|sortOrder|deletedAt/);
     });

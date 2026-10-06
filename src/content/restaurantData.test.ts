@@ -6,7 +6,7 @@ import { applyRestaurants, restaurantHours, type PublicRestaurant } from './rest
 const api = (over: Partial<PublicRestaurant> = {}): PublicRestaurant => ({
   slug: 'hilltop', nameEn: 'Hill-top Edited', nameAr: 'القمة المعدلة', brandEn: null, brandAr: null, taglineEn: 'New tagline', taglineAr: 'شعار جديد',
   descriptionEn: 'New English description', descriptionAr: 'وصف عربي جديد', atmosphereEn: null, atmosphereAr: null, opensAt: '13:00', closesAt: '01:00',
-  closesAfterMidnight: true, phones: ['0100 111 2222'], hero: null, gallery: [], menus: [], ...over,
+  closesAfterMidnight: true, instagramUrl: null, phones: ['0100 111 2222'], hero: null, gallery: [], menus: [], ...over,
 })
 
 describe('restaurant hours', () => {
@@ -72,6 +72,12 @@ describe('applyRestaurants', () => {
   it('follows the portal\'s order and drops restaurants that are switched off (they are not in the answer)', () => {
     const out = applyRestaurants(en, [api({ slug: 'masrawya' }), api({ slug: 'hilltop' })], 'en').restaurants.list
     expect(out.map((r) => r.slug)).toEqual(['masrawya', 'hilltop'])
+  })
+
+  it("sends 'Reserve a table' to the restaurant's own Instagram, and offers no button without one", () => {
+    const out = applyRestaurants(en, [api({ instagramUrl: 'https://www.instagram.com/rooftop/' }), api({ slug: 'lakeside', instagramUrl: null })], 'en').restaurants.list
+    expect(out[0].instagramUrl).toBe('https://www.instagram.com/rooftop/')
+    expect(out[1].instagramUrl).toBeUndefined()
   })
 
   it('does not touch the rest of the page content', () => {

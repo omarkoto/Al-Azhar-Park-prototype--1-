@@ -17,6 +17,7 @@ export interface PublicRestaurant {
   opensAt: string | null
   closesAt: string | null
   closesAfterMidnight: boolean
+  instagramUrl: string | null
   phones: string[]
   hero: { url: string; altEn: string | null; altAr: string | null } | null
   gallery: Array<{ url: string; captionEn: string | null; captionAr: string | null }>
@@ -43,6 +44,7 @@ function one(api: PublicRestaurant, base: Restaurant | undefined, lang: Lang): R
     name: ar ? api.nameAr : api.nameEn,
     brand: pick(api.brandEn, api.brandAr, '') || undefined,
     phones: api.phones.length > 0 ? api.phones : (base?.phones ?? []),
+    instagramUrl: api.instagramUrl ?? undefined,
     menuUrl: menus[0]?.url ?? base?.menuUrl,
     menus: menus.length > 1 ? menus : undefined,
     hours: restaurantHours(api.opensAt, api.closesAt, lang) ?? base?.hours ?? '',

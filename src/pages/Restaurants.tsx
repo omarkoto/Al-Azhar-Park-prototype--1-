@@ -12,11 +12,6 @@ import clsx from 'clsx'
 import { resolveImage } from '../lib/imageMap'
 import restaurantsHero from '../assets/images/restaurants-hero-lakeside.webp'
 
-// Hill-top Restaurant (Studio Masr) takes reservations through its Instagram, not the in-site form.
-const externalReservationLinks: Record<string, string> = {
-  hilltop: 'https://www.instagram.com/studio.masr/?hl=en',
-}
-
 export function Restaurants() {
   const content = useContent()
   const altText = useAlt()
@@ -69,23 +64,12 @@ export function Restaurants() {
                       {t('viewDetails')}
                     </ButtonLink>
                     {' '}
-                    {externalReservationLinks[restaurant.slug] ? (
-                      <ExternalLink
-                        href={externalReservationLinks[restaurant.slug]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="ghost"
-                        className="text-ink-900"
-                      >
+                    {restaurant.instagramUrl ? (
+                      <ExternalLink href={restaurant.instagramUrl} target="_blank" rel="noopener noreferrer" variant="ghost" className="text-ink-900">
                         <CalendarIcon />
                         {t('reserveTable')}
                       </ExternalLink>
-                    ) : (
-                      <ButtonLink to={`/restaurants/${restaurant.slug}`} variant="ghost" className="text-ink-900">
-                        <CalendarIcon />
-                        {t('reserveTable')}
-                      </ButtonLink>
-                    )}
+                    ) : null}
                   </div>
                 </Reveal>
               </div>
