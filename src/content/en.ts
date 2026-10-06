@@ -24,10 +24,10 @@ export const en: SiteContent = {
     ctaSecondary: 'The story of the park',
   },
   stats: [
-    { value: '72', label: 'Acres of gardens and terraces' },
+    { value: '74', label: 'Acres of gardens and terraces' },
     { value: '1984', label: 'Year the park was conceived' },
     { value: '2005', label: 'Year the park opened to the public' },
-    { value: '60', label: "Ranked among the world's great public spaces" },
+    { value: '60', label: "Named one of the world's 60 great public spaces" },
   ],
   ticketsSection: {
     eyebrow: 'Buy tickets',
@@ -264,7 +264,7 @@ export const en: SiteContent = {
       {
         year: '2005',
         title: 'The park opens',
-        body: 'Al-Azhar Park opens to the public — 72 acres of gardens, lakes and terraces looking out over historic Cairo.',
+        body: 'Al-Azhar Park opens to the public — 74 acres of gardens, lakes and terraces looking out over historic Cairo.',
       },
       {
         year: 'Today',

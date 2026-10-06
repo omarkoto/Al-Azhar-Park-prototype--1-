@@ -49,10 +49,10 @@ export const PARK_SETTINGS = {
   descriptionAr:
     'وُلدت حديقة الأزهر هدية لأهل القاهرة، لتصبح واحدة من أهم مشاريع إعادة إحياء المدن في الشرق الأوسط.',
   stats: [
-    { value: '72', labelEn: 'Acres of gardens and terraces', labelAr: 'فدانًا من الحدائق والشرفات' },
+    { value: '74', labelEn: 'Acres of gardens and terraces', labelAr: 'فدانًا (٣٠ هكتارًا) من الحدائق والشرفات' },
     { value: '1984', labelEn: 'Year the park was conceived', labelAr: 'العام الذي وُلدت فيه فكرة الحديقة' },
     { value: '2005', labelEn: 'Year the park opened to the public', labelAr: 'عام افتتاح الحديقة للجمهور' },
-    { value: '60', labelEn: "Ranked among the world's great public spaces", labelAr: 'مصنّفة ضمن أفضل ٦٠ مساحة عامة في العالم' },
+    { value: '60', labelEn: "Named one of the world's 60 great public spaces", labelAr: 'مُدرجة ضمن ٦٠ مساحة عامة كبرى في العالم' },
   ],
 };
 

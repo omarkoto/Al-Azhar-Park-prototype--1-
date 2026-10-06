@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import { ARCH_PATH } from '../../lib/archPath'
 import { useLanguage } from '../../lib/language'
 import { Container } from '../ui/Container'
 import { Eyebrow } from '../ui/SectionHeading'
@@ -59,6 +60,32 @@ function Lung() {
   )
 }
 
+/**
+ * A key fact on a doorway arch — the same arch as the Home page photos: a gold ring, a hairline of sand, a fine gold
+ * line just inside the edge, and a soft light falling from the point of the arch.
+ */
+function FactArch({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="group relative aspect-[3/4] drop-shadow-[0_10px_18px_rgba(10,37,31,0.14)] transition-all duration-500 hover:-translate-y-1.5 hover:drop-shadow-[0_18px_26px_rgba(10,37,31,0.22)] sm:aspect-[4/5]">
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700 transition-[filter] duration-500 group-hover:brightness-110" style={{ clipPath: 'url(#arch-clip)' }} />
+      <div aria-hidden="true" className="absolute inset-[3px] bg-sand-50" style={{ clipPath: 'url(#arch-clip)' }} />
+      <div aria-hidden="true" className="absolute inset-[6px] bg-gradient-to-b from-gold-100/70 via-sand-100 to-sand-100" style={{ clipPath: 'url(#arch-clip)' }} />
+      <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1 1" preserveAspectRatio="none">
+        <path d={ARCH_PATH} transform="translate(0.035 0.04) scale(0.93 0.935)" fill="none" stroke="#cb9c4f" strokeOpacity="0.45" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-5 pt-[26%] text-center sm:px-6">
+        <p className="font-display text-3xl font-medium text-teal-800 sm:text-4xl">{value}</p>
+        <span aria-hidden="true" className="my-3 flex items-center gap-2 text-gold-600">
+          <span className="h-px w-6 bg-gradient-to-r from-transparent to-gold-500/70" />
+          <span className="h-1.5 w-1.5 rotate-45 bg-gold-500" />
+          <span className="h-px w-6 bg-gradient-to-l from-transparent to-gold-500/70" />
+        </span>
+        <p className="text-xs leading-snug text-ink-900/70 sm:text-sm">{label}</p>
+      </div>
+    </div>
+  )
+}
+
 /** History — narrative on one side, four arch-topped "plaques" of key facts on the other. */
 function History() {
   const { content } = useLanguage()
@@ -77,11 +104,7 @@ function History() {
         <div className="grid grid-cols-2 gap-4 sm:gap-5">
           {history.facts.map((fact, i) => (
             <Reveal key={fact.value} delay={i * 0.08} className={i % 2 === 1 ? 'mt-8' : undefined}>
-              <div className="group relative h-full rounded-t-[999px] rounded-b-2xl border border-gold-500/35 bg-sand-100 px-5 pb-7 pt-14 text-center shadow-sm shadow-ink-900/5 transition-all duration-300 hover:-translate-y-1 hover:border-gold-500/70 hover:shadow-lg">
-                <span className="absolute inset-x-6 top-5 h-px bg-gradient-to-r from-transparent via-gold-500/50 to-transparent" aria-hidden="true" />
-                <p className="font-display text-3xl font-medium text-teal-800 sm:text-4xl">{fact.value}</p>
-                <p className="mt-3 text-xs leading-snug text-ink-900/65 sm:text-sm">{fact.label}</p>
-              </div>
+              <FactArch value={fact.value} label={fact.label} />
             </Reveal>
           ))}
         </div>

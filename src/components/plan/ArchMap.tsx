@@ -1,11 +1,12 @@
 import { useId } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import clsx from 'clsx'
 import type { Lang } from '../../content'
 import type { Plan } from '../../lib/plan/generate'
 import { entrance } from '../../lib/plan/stops'
 import { ALT } from '../../lib/alt'
-import { RosetteIcon } from '../ui/RosetteIcon'
+import { ARCH_PATH } from '../../lib/archPath'
+import logoMark from '../../assets/brand/logo-mark.svg'
 
 type Pt = { x: number; y: number }
 
@@ -53,15 +54,17 @@ export function ArchMap({
 
   return (
     <div className={clsx('relative', className)}>
-      {/* Double gold frame — outer band, a hairline of sand, then an inner band — all in the same arch */}
-      <div aria-hidden="true" className="absolute -inset-3.5 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700" style={{ clipPath: 'url(#arch-wide-clip)' }} />
-      <div aria-hidden="true" className="absolute -inset-2.5 bg-sand-50" style={{ clipPath: 'url(#arch-wide-clip)' }} />
-      <div aria-hidden="true" className="absolute -inset-1.5 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700" style={{ clipPath: 'url(#arch-wide-clip)' }} />
-      <span className="absolute start-1/2 -top-7 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-gold-500/60 bg-sand-50 shadow-md rtl:translate-x-1/2" aria-hidden="true">
-        <RosetteIcon className="h-6 w-6 text-gold-600" />
-      </span>
-      <div className="relative aspect-[1000/400] overflow-hidden bg-teal-950" style={{ clipPath: 'url(#arch-wide-clip)' }}>
-        <svg viewBox="0 110 1000 400" className="absolute inset-0 h-full w-full" role="img" aria-label={ALT.planMap[lang]}>
+      {/* The same doorway arch as the Home page, framed in gold: an outer band, a hairline of sand, an inner band */}
+      <div aria-hidden="true" className="absolute -inset-4 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700 shadow-2xl shadow-ink-900/25" style={{ clipPath: 'url(#arch-clip)' }} />
+      <div aria-hidden="true" className="absolute -inset-[11px] bg-sand-50" style={{ clipPath: 'url(#arch-clip)' }} />
+      <div aria-hidden="true" className="absolute -inset-[7px] bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700" style={{ clipPath: 'url(#arch-clip)' }} />
+      <FlowerBadge />
+      <div className="relative aspect-[1000/520] overflow-hidden bg-teal-950" style={{ clipPath: 'url(#arch-clip)' }}>
+        {/* a fine gold line echoing the arch, just inside the edge */}
+        <svg aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 1 1" preserveAspectRatio="none">
+          <path d={ARCH_PATH} transform="translate(0.012 0.024) scale(0.976 0.968)" fill="none" stroke="#e0b568" strokeOpacity="0.5" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
+        </svg>
+        <svg viewBox="0 30 1000 520" className="absolute inset-0 h-full w-full" role="img" aria-label={ALT.planMap[lang]}>
           <defs>
             <radialGradient id={`sky-${uid}`} cx="50%" cy="0%" r="75%">
               <stop offset="0%" stopColor="#cb9c4f" stopOpacity="0.55" />
@@ -87,8 +90,8 @@ export function ArchMap({
             </clipPath>
           </defs>
 
-          <rect y="110" width="1000" height="400" fill={`url(#lat-${uid})`} />
-          <rect y="110" width="1000" height="400" fill={`url(#sky-${uid})`} />
+          <rect y="30" width="1000" height="520" fill={`url(#lat-${uid})`} />
+          <rect y="30" width="1000" height="520" fill={`url(#sky-${uid})`} />
 
           {/* The park */}
           <path d={OUTLINE} fill={`url(#park-${uid})`} stroke="#cb9c4f" strokeOpacity="0.55" strokeWidth="1.5" />
@@ -185,5 +188,25 @@ export function ArchMap({
 
       </div>
     </div>
+  )
+}
+
+/**
+ * The Al-Azhar Park flower crowning the arch. It turns as the page scrolls — a spring smooths the motion, so it
+ * glides and settles like a wheel with weight — while a fine dashed gold ring turns the other way around it.
+ */
+function FlowerBadge() {
+  const reduceMotion = useReducedMotion()
+  const { scrollY } = useScroll()
+  const turn = useSpring(useTransform(scrollY, (y) => y * 0.5), { stiffness: 55, damping: 16, mass: 0.9 })
+  const counter = useTransform(turn, (v) => -v * 0.6)
+
+  return (
+    <span className="absolute start-1/2 -top-10 z-20 flex h-[4.5rem] w-[4.5rem] -translate-x-1/2 items-center justify-center rounded-full border border-gold-500/70 bg-sand-50 shadow-xl shadow-ink-900/25 rtl:translate-x-1/2" aria-hidden="true">
+      <motion.svg style={reduceMotion ? undefined : { rotate: counter }} viewBox="0 0 100 100" className="absolute -inset-1.5 h-[calc(100%+0.75rem)] w-[calc(100%+0.75rem)]">
+        <circle cx="50" cy="50" r="48" fill="none" stroke="#cb9c4f" strokeOpacity="0.7" strokeWidth="1" strokeDasharray="2 5" strokeLinecap="round" />
+      </motion.svg>
+      <motion.img src={logoMark} alt="" style={reduceMotion ? undefined : { rotate: turn }} className="h-12 w-12 select-none" draggable={false} />
+    </span>
   )
 }

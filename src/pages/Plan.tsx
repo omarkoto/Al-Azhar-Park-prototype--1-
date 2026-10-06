@@ -101,9 +101,10 @@ export function Plan() {
       />
 
       <section className="py-14 md:py-20">
-        <Container className="grid gap-12 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14">
+        {/* Phone: the map and route first, then the choices, then the tickets. Desktop: choices on the left; map above tickets on the right, the tickets ending level with the choices. */}
+        <Container className="grid gap-12 lg:grid-cols-[minmax(0,380px)_1fr] lg:grid-rows-[auto_1fr] lg:gap-x-14 lg:gap-y-8">
           {/* Controls */}
-          <Reveal className="h-fit rounded-2xl border border-ink-900/10 bg-sand-100 p-6 lg:sticky lg:top-28">
+          <Reveal className="order-2 rounded-2xl border border-ink-900/10 bg-sand-100 p-6 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
             <h2 className="font-display text-2xl font-medium text-ink-900">{copy.yourDay}</h2>
 
             <Field label={copy.date}>
@@ -143,7 +144,7 @@ export function Plan() {
           </Reveal>
 
           {/* Map + actions */}
-          <div className="min-w-0">
+          <div className="order-1 mt-8 min-w-0 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-6">
             <Reveal>
               <ArchMap plan={plan} lang={lang} activeId={activeId} onActive={setActiveId} />
             </Reveal>
@@ -155,7 +156,9 @@ export function Plan() {
               </span>
             </div>
 
-            <Reveal delay={0.1} className="mt-8 rounded-2xl border border-ink-900/10 bg-sand-100 p-6">
+          </div>
+
+          <Reveal delay={0.1} className="order-3 rounded-2xl border border-ink-900/10 bg-sand-100 p-6 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-end">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/45">{copy.total}</p>
@@ -169,7 +172,6 @@ export function Plan() {
               </div>
               <AddToCalendar className="mt-6 border-t border-ink-900/10 pt-6" entry={calendarEntry} filename={`plan-${validDate}`} />
             </Reveal>
-          </div>
         </Container>
       </section>
 
