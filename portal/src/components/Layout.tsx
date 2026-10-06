@@ -8,6 +8,8 @@ const NAV: Array<{ to: string; label: string; permission: string }> = [
   { to: '/contact', label: 'Contact details', permission: 'contact:read' },
   { to: '/hours', label: 'Opening hours', permission: 'hours:read' },
   { to: '/restaurants', label: 'Restaurants', permission: 'restaurants:read' },
+  { to: '/events', label: 'Events', permission: 'events:read' },
+  { to: '/venues', label: 'Venues', permission: 'venues:read' },
   { to: '/media', label: 'Media library', permission: 'media:read' },
   { to: '/users', label: 'Staff accounts', permission: 'users:read' },
   { to: '/roles', label: 'Roles & permissions', permission: 'roles:read' },

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { contentByLang, type Lang, type SiteContent } from '../content'
+import { applyEvents } from '../content/eventData'
 import { applyRestaurants } from '../content/restaurantData'
 import { applySiteData } from '../content/siteData'
 import { useSiteData } from './siteData'
@@ -18,7 +19,7 @@ const STORAGE_KEY = 'azharpark-lang'
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
-  const { site, restaurants } = useSiteData()
+  const { site, restaurants, comingSoonEvents } = useSiteData()
   const lang: Lang = i18n.language === 'ar' ? 'ar' : 'en'
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
 
@@ -32,7 +33,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     () => ({
       lang,
       dir,
-      content: applyRestaurants(applySiteData(contentByLang[lang], site, lang), restaurants, lang),
+      content: applyEvents(applyRestaurants(applySiteData(contentByLang[lang], site, lang), restaurants, lang), comingSoonEvents, lang),
       toggleLang: () => {
         void i18n.changeLanguage(lang === 'en' ? 'ar' : 'en')
       },
@@ -40,7 +41,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         void i18n.changeLanguage(l)
       },
     }),
-    [lang, dir, i18n, site, restaurants],
+    [lang, dir, i18n, site, restaurants, comingSoonEvents],
   )
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>

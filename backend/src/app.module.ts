@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
 import { MediaModule } from './modules/media/media.module';
+import { EventsModule } from './modules/events/events.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ParkModule } from './modules/park/park.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -39,7 +40,8 @@ import { UsersModule } from './modules/users/users.module';
     ParkModule,
     MediaModule,
     RestaurantsModule,
-    // Phase 5+: EventsModule,
+    EventsModule,
+    //
     //           TicketingModule, ScansModule, AnalyticsModule, MediaModule …
   ],
   providers: [

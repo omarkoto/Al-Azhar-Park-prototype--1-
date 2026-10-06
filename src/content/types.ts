@@ -101,6 +101,8 @@ export interface ComingSoonEvent {
   location: string
   status: string
   featured?: boolean
+  /** extra photos (events from the portal) */
+  gallery?: string[]
 }
 
 // Data-driven shape for the homepage "News" / editorial journal carousel.

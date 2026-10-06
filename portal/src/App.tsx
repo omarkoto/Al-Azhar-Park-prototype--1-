@@ -8,6 +8,8 @@ import { ParkPage } from './pages/Park'
 import { RolesPage } from './pages/Roles'
 import { UsersPage } from './pages/Users'
 import { MediaPage } from './pages/Media'
+import { EventEditor, EventsPage } from './pages/Events'
+import { VenuesPage } from './pages/Venues'
 import { RestaurantEditor, RestaurantsPage } from './pages/Restaurants'
 
 export default function App() {
@@ -21,6 +23,9 @@ export default function App() {
         <Route path="hours" element={<RequirePermission permission="hours:read"><HoursPage /></RequirePermission>} />
         <Route path="restaurants" element={<RequirePermission permission="restaurants:read"><RestaurantsPage /></RequirePermission>} />
         <Route path="restaurants/:id" element={<RequirePermission permission="restaurants:read"><RestaurantEditor /></RequirePermission>} />
+        <Route path="events" element={<RequirePermission permission="events:read"><EventsPage /></RequirePermission>} />
+        <Route path="events/:id" element={<RequirePermission permission="events:read"><EventEditor /></RequirePermission>} />
+        <Route path="venues" element={<RequirePermission permission="venues:read"><VenuesPage /></RequirePermission>} />
         <Route path="media" element={<RequirePermission permission="media:read"><MediaPage /></RequirePermission>} />
         <Route path="users" element={<RequirePermission permission="users:read"><UsersPage /></RequirePermission>} />
         <Route path="roles" element={<RequirePermission permission="roles:read"><RolesPage /></RequirePermission>} />

@@ -149,17 +149,14 @@ export async function seedDevelopment(prisma: PrismaClient, devPassword: string)
     }
   }
 
+  // Events: created once; what editors change afterwards is never overwritten.
   for (const e of EVENTS) {
+    const { venueSlug, ...rest } = e as typeof e & { venueSlug?: string };
+    const venue = venueSlug ? await prisma.venue.findUnique({ where: { slug: venueSlug } }) : null;
     await prisma.event.upsert({
       where: { slug: e.slug },
       update: {},
-      create: {
-        ...e,
-        startsAt: new Date(e.startsAt),
-        endsAt: new Date(e.endsAt),
-        status: 'PUBLISHED',
-        publishedAt: new Date(),
-      },
+      create: { ...rest, venueId: venue?.id ?? null, startsAt: new Date(e.startsAt), endsAt: new Date(e.endsAt), publishedAt: new Date() },
     });
   }
 }

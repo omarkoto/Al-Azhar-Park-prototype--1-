@@ -126,3 +126,7 @@ Migration `20261006000000_event_time_range`: `ck_events_range` (an event's end m
 ## Phase 4 additions (restaurants, menus, media)
 
 Migration `20261006120000_phase4_restaurants_media` (constraints only; the tables existed since Phase 1): `media` only holds `image/jpeg|png|webp` and `application/pdf`, size 1 B – 100 MB, dimensions 1–12000 px, a generated storage key and a site-relative URL; `restaurants` have a clean slug, non-blank names, opening and closing time together (a closing time not after the opening time means after midnight), at most 6 phones and https-only links; `menus` need an external https link **or** a PDF and a non-blank name. Photos and PDFs in use cannot be removed: `restaurant_media` references media with `ON DELETE RESTRICT`, and the API checks every use before soft-deleting a file.
+
+## Phase 5 additions (events)
+
+Migration `20261007090000_phase5_events`: `event_status` is now DRAFT, COMING_SOON, PUBLISHED, CANCELLED, ARCHIVED (the unused COMPLETED became ARCHIVED; existing rows unchanged); `venues` gained `address_en`, `address_ar` and `is_active`; index `ix_events_status_sort`; CHECKs `ck_events_slug`, `ck_events_titles`, `ck_events_duration` (at most 18 hours; `ck_events_range` already required end after start), `ck_venues_slug`, `ck_venues_names`. New permissions `venues:read` and `venues:write` (seed).

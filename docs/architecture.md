@@ -62,4 +62,5 @@ response ◄─ { data, meta? }  (EnvelopeInterceptor)        errors ◄─ { er
 Phase 2 — authentication & RBAC (done): see [`authentication.md`](authentication.md).
 Phase 3 — park CMS and staff portal (done): see [`park-cms.md`](park-cms.md).
 Phase 4 — restaurants, menus and media (done): see [`restaurants-media.md`](restaurants-media.md).
-Phase 5 onward — events, ticketing, scanning, analytics (not started).
+Phase 5 — events and coming soon (done): see [`events.md`](events.md).
+Phase 6 onward — ticketing, scanning, analytics (not started).

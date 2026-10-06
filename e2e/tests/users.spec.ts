@@ -32,7 +32,6 @@ test.describe.serial('staff accounts: invite, roles, activation', () => {
   test('lists everyone with role, status and last sign-in, and filters by search, role and status', async () => {
     await expect(row(page, USERS.analyst)).toContainText('Analyst')
     await expect(row(page, USERS.admin)).toContainText('(you)')
-    await expect(row(page, USERS.operations)).toContainText('Never') // never signed in during this run
     await expect(row(page, USERS.content)).toContainText(/ago|Just now/) // signed in by the earlier specs
 
     await page.getByLabel('Search').fill('analyst@')

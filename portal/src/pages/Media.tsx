@@ -52,8 +52,10 @@ export function MediaLibrary({ pick, kind: fixedKind, onPick }: { pick?: boolean
   async function upload(files: FileList | null) {
     if (!files || files.length === 0) return
     setUploading(true)
+    // the FileList is a live view of the input: copy what we need before the input is cleared below
+    const chosen = Array.from(files)
     let last: MediaItem | null = null
-    for (const file of Array.from(files)) {
+    for (const file of chosen) {
       const hint = uploadProblem(file)
       if (hint) {
         toast('error', hint)
@@ -72,7 +74,7 @@ export function MediaLibrary({ pick, kind: fixedKind, onPick }: { pick?: boolean
     if (input.current) input.current.value = ''
     setPage(1)
     await load()
-    if (pick && last && onPick && files.length === 1) onPick(last)
+    if (pick && last && onPick && chosen.length === 1) onPick(last)
   }
 
   async function remove(m: MediaItem) {

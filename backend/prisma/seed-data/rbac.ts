@@ -22,8 +22,11 @@ export const PERMISSIONS: ReadonlyArray<readonly [code: string, description: str
   ['menus:write', 'Create and edit restaurant menus'],
 
   ['events:read', 'View events'],
-  ['events:write', 'Create and edit events'],
-  ['events:publish', 'Publish and unpublish events'],
+  ['events:write', 'Create and edit events, their photos and their order'],
+  ['events:publish', "Change an event's status: coming soon, published, cancelled, archived, restored"],
+
+  ['venues:read', 'View event venues'],
+  ['venues:write', 'Create and edit event venues, switch them on or off'],
 
   ['media:read', 'View uploaded media'],
   ['media:write', 'Upload and delete media'],
@@ -85,7 +88,7 @@ export const ROLES: readonly RoleSeed[] = [
       'users:read', 'users:write', 'roles:read', 'permissions:read',
       'park:read', 'park:write', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
       'restaurants:read', 'restaurants:write', 'menus:read', 'menus:write',
-      'events:read', 'events:write', 'events:publish', 'media:read', 'media:write',
+      'events:read', 'events:write', 'events:publish', 'venues:read', 'venues:write', 'media:read', 'media:write',
       'ticket-types:read', 'pricing:read', 'pricing:write',
       'customers:read', 'customers:privacy',
       'orders:read', 'orders:cancel', 'payments:read', 'payments:record_cash', 'counter-sales:create',
@@ -100,7 +103,7 @@ export const ROLES: readonly RoleSeed[] = [
     description: 'Operational information, orders and tickets, scanning and operational analytics. No system or admin settings.',
     permissions: [
       'park:read', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
-      'restaurants:read', 'menus:read', 'events:read', 'events:write', 'media:read',
+      'restaurants:read', 'menus:read', 'events:read', 'events:write', 'venues:read', 'media:read',
       'ticket-types:read',
       'customers:read',
       'orders:read', 'orders:cancel', 'payments:read', 'payments:record_cash', 'counter-sales:create',
@@ -125,7 +128,7 @@ export const ROLES: readonly RoleSeed[] = [
     permissions: [
       'park:read', 'park:write', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
       'restaurants:read', 'restaurants:write', 'menus:read', 'menus:write',
-      'events:read', 'events:write', 'events:publish', 'media:read', 'media:write',
+      'events:read', 'events:write', 'events:publish', 'venues:read', 'venues:write', 'media:read', 'media:write',
       'analytics:content',
     ],
   },
@@ -135,7 +138,7 @@ export const ROLES: readonly RoleSeed[] = [
     description: 'Read-only analytics, orders and tickets. No modification permissions.',
     permissions: [
       'analytics:read', 'orders:read', 'payments:read', 'tickets:read', 'scans:read',
-      'ticket-types:read', 'pricing:read', 'events:read', 'restaurants:read', 'park:read',
+      'ticket-types:read', 'pricing:read', 'events:read', 'venues:read', 'restaurants:read', 'park:read',
     ],
   },
 ];

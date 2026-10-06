@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '../lib/language'
@@ -11,13 +12,38 @@ import { RosetteIcon } from '../components/ui/RosetteIcon'
 import { PageHero } from '../components/PageHero'
 import { AddToCalendar } from '../components/AddToCalendar'
 import type { ComingSoonEvent } from '../content/types'
+import { toSiteEvent, type PublicEvent } from '../content/eventData'
+import { API_URL, apiGet } from '../lib/api'
+import { useSiteData } from '../lib/siteData'
 
 export function EventDetail() {
   const { slug } = useParams()
-  const { content } = useLanguage()
+  const { content, lang } = useLanguage()
   const { t } = useTranslation()
+  const { publishedEvents, eventsSettled } = useSiteData()
   const { comingSoon } = content
-  const event = comingSoon.events.find((e) => e.slug === slug)
+  const listed =
+    comingSoon.events.find((e) => e.slug === slug) ??
+    (() => {
+      const p = publishedEvents?.find((e) => e.slug === slug)
+      return p ? toSiteEvent(p, lang, t('eventBadge')) : undefined
+    })()
+  // a published event that is not in the "upcoming" list (it has already happened) still has its own page
+  const [fetched, setFetched] = useState<{ slug: string; event: PublicEvent | null } | null>(null)
+  const needsFetch = !listed && !!API_URL && eventsSettled && !!slug
+  useEffect(() => {
+    if (!needsFetch || !slug) return
+    let cancelled = false
+    apiGet<PublicEvent>(`/public/events/${encodeURIComponent(slug)}`)
+      .then((e) => !cancelled && setFetched({ slug, event: e }))
+      .catch(() => !cancelled && setFetched({ slug, event: null }))
+    return () => {
+      cancelled = true
+    }
+  }, [needsFetch, slug])
+  const fromApi = fetched && fetched.slug === slug && fetched.event ? toSiteEvent(fetched.event, lang, fetched.event.status === 'COMING_SOON' ? comingSoon.badge : t('eventBadge')) : undefined
+  const event = listed ?? fromApi
+  const waiting = !event && !!API_URL && (!eventsSettled || (needsFetch && !(fetched && fetched.slug === slug)))
 
   useSeo({
     title: event?.title ?? comingSoon.title,
@@ -25,13 +51,14 @@ export function EventDetail() {
     path: `/events/${slug ?? ''}`,
   })
 
+  if (waiting) return <div className="min-h-[60vh]" aria-busy="true" />
   if (!event) return <Navigate to="/" replace />
 
   const related = comingSoon.events.filter((e) => e.slug !== event.slug).slice(0, 2)
 
   return (
     <div>
-      <PageHero eyebrow={comingSoon.badge} title={event.title} lead={event.description} image={resolveImage(event.image)} imageAlt="">
+      <PageHero eyebrow={event.status} title={event.title} lead={event.description} image={resolveImage(event.image)} imageAlt="">
         <Link to="/" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-sand-100/80 hover:text-sand-50">
           ← {t('backToHome')}
         </Link>
@@ -40,23 +67,32 @@ export function EventDetail() {
       <section className="py-16 md:py-24">
         <Container className="grid gap-12 md:grid-cols-[1.3fr_1fr]">
           <Reveal>
-            <p className="text-base leading-relaxed text-ink-900/80 md:text-lg">{event.body}</p>
+            <p className="text-base leading-relaxed whitespace-pre-line text-ink-900/80 md:text-lg">{event.body}</p>
+            {event.gallery && event.gallery.length > 0 ? (
+              <div className="mt-10 grid grid-cols-2 gap-4">
+                {event.gallery.map((src) => (
+                  <img key={src} src={resolveImage(src)} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-sm object-cover" />
+                ))}
+              </div>
+            ) : null}
           </Reveal>
 
           <Reveal delay={0.1} className="h-fit rounded-2xl border border-ink-900/10 bg-sand-100 p-6">
             <span className="inline-flex items-center gap-3">
               <RosetteIcon className="h-5 w-5 shrink-0 text-gold-600" />
-              <Eyebrow>{comingSoon.badge}</Eyebrow>
+              <Eyebrow>{event.status}</Eyebrow>
             </span>
             <dl className="mt-5 space-y-4">
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/45">{comingSoon.dateLabel}</dt>
                 <dd className="mt-1 text-sm font-medium text-ink-900">{event.date}</dd>
               </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/45">{t('timeLabel')}</dt>
-                <dd className="mt-1 text-sm font-medium text-ink-900">{event.time}</dd>
-              </div>
+              {event.time ? (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/45">{t('timeLabel')}</dt>
+                  <dd className="mt-1 text-sm font-medium text-ink-900">{event.time}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/45">{comingSoon.locationLabel}</dt>
                 <dd className="mt-1 text-sm font-medium text-ink-900">{event.location}</dd>

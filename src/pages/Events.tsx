@@ -14,6 +14,7 @@ import { LatticePattern } from '../components/ui/LatticePattern'
 import { RosetteIcon } from '../components/ui/RosetteIcon'
 import { PageHero } from '../components/PageHero'
 import { RestaurantVisual } from '../components/RestaurantVisual'
+import { WhatsOn } from '../components/WhatsOn'
 
 import heroImage from '../assets/images/events-hero-banner.webp'
 import fountainGarden from '../assets/images/venue-fountain-garden.webp'
@@ -87,6 +88,9 @@ export function Events() {
         imageAlt={altText('eventsHero')}
         credit={{ text: credit_('Yasser.mahmoud', 'CC BY-SA 4.0'), href: 'https://commons.wikimedia.org/wiki/File:حـديقة_الازهر_11.jpg' }}
       />
+
+      {/* Events from the portal: published, coming soon, or an empty state */}
+      <WhatsOn />
 
       {/* Venue showcase */}
       <section className="relative overflow-hidden py-20 md:py-28">

@@ -137,6 +137,14 @@ export class MediaService {
     await this.audit.record({ userId: actor.id, action: 'media.deleted', entity: 'media', entityId: id, oldValue: { fileName: row.fileName } }, ctx);
   }
 
+  /** For other modules: the media must exist (not deleted) and be a photo — throws a 422 the editor can read. */
+  async requireImage(id: string | null | undefined): Promise<void> {
+    if (!id) return;
+    const m = await this.prisma.media.findFirst({ where: { id, deletedAt: null }, select: { mimeType: true } });
+    if (!m) throw new AppException('MEDIA_NOT_FOUND', 'That photo does not exist (it may have been deleted).', 422);
+    if (!m.mimeType.startsWith('image/')) throw new AppException('MEDIA_NOT_IMAGE', 'That file is not an image.', 422);
+  }
+
   /** Looks up a file for serving. Only generated keys are accepted and deleted files are gone. */
   async findForServing(key: string): Promise<Media | null> {
     if (!STORAGE_KEY.test(key)) return null;

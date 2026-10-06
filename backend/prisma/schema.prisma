@@ -106,11 +106,13 @@ enum SpecialHoursKind {
   @@map("special_hours_kind")
 }
 
+/// DRAFT: portal only. COMING_SOON / PUBLISHED: public. CANCELLED / ARCHIVED: hidden from the public.
 enum EventStatus {
   DRAFT
+  COMING_SOON
   PUBLISHED
   CANCELLED
-  COMPLETED
+  ARCHIVED
 
   @@map("event_status")
 }
@@ -699,6 +701,10 @@ model Venue {
   areaSqm       Int?      @map("area_sqm")
   latitude      Decimal?  @db.Decimal(9, 6)
   longitude     Decimal?  @db.Decimal(9, 6)
+  addressEn     String?   @map("address_en")
+  addressAr     String?   @map("address_ar")
+  /// inactive venues cannot be chosen for new events; events that already use one keep it
+  isActive      Boolean   @default(true) @map("is_active")
   sortOrder     Int       @default(0) @map("sort_order")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -744,6 +750,7 @@ model Event {
 
   @@index([status, startsAt])
   @@index([startsAt])
+  @@index([status, sortOrder], map: "ix_events_status_sort")
   @@map("events")
 }
 
