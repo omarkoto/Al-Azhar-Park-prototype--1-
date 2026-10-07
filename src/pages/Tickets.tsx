@@ -10,6 +10,9 @@ import { LatticePattern } from '../components/ui/LatticePattern'
 import { RosetteIcon } from '../components/ui/RosetteIcon'
 import { PageHero } from '../components/PageHero'
 import { TicketBuilder } from '../components/TicketBuilder'
+import { pounds, useBookingCatalog } from '../lib/booking'
+import { useMoney } from '../lib/alt'
+import { useTranslation } from 'react-i18next'
 import ticketsHero from '../assets/images/tickets-hero-entrance.webp'
 
 export function Tickets() {
@@ -17,6 +20,17 @@ export function Tickets() {
   const altText = useAlt()
   const { visit } = content
   useSeo({ title: visit.title, description: visit.lead, path: '/tickets' })
+  const { t } = useTranslation()
+  const money = useMoney()
+  const { catalog } = useBookingCatalog('')
+  // the price table shows the park's live prices (the same ones checkout uses); the built-in table is only the fallback
+  const live = (groupIndex: number, rowIndex: number, kind: 'weekdayMinor' | 'weekendMinor'): string | null => {
+    const audience = catalog?.audiences[groupIndex]
+    const type = catalog?.ticketTypes[rowIndex]
+    const cell = audience && type ? catalog?.priceList.find((p) => p.audience === audience.code && p.ticketType === type.code) : undefined
+    const minor = cell?.[kind]
+    return minor === null || minor === undefined ? null : money(pounds(minor))
+  }
 
   return (
     <div>
@@ -34,7 +48,7 @@ export function Tickets() {
           <Reveal>
             <Eyebrow>{visit.ticketsTitle}</Eyebrow>
             <p className="mt-4 max-w-2xl rounded-xl border border-gold-500/30 bg-gold-100/40 px-5 py-4 text-sm leading-relaxed text-ink-900/70">
-              {visit.ticketsNote}
+              {catalog ? t('bookPricesLive') : visit.ticketsNote}
             </p>
           </Reveal>
 
@@ -67,14 +81,14 @@ export function Tickets() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-ink-900/10">
-                    {group.rows.map((row) => (
+                    {group.rows.map((row, r) => (
                       <tr key={row.label}>
                         <td className="px-6 py-3 font-medium text-ink-900">{row.label}</td>
                         <td className="px-6 py-3 text-ink-900/75" dir="ltr">
-                          {row.weekday}
+                          {live(i, r, 'weekdayMinor') ?? row.weekday}
                         </td>
                         <td className="px-6 py-3 text-ink-900/75" dir="ltr">
-                          {row.weekend}
+                          {live(i, r, 'weekendMinor') ?? row.weekend}
                         </td>
                       </tr>
                     ))}

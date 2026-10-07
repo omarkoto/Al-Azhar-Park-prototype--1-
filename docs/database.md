@@ -130,3 +130,12 @@ Migration `20261006120000_phase4_restaurants_media` (constraints only; the table
 ## Phase 5 additions (events)
 
 Migration `20261007090000_phase5_events`: `event_status` is now DRAFT, COMING_SOON, PUBLISHED, CANCELLED, ARCHIVED (the unused COMPLETED became ARCHIVED; existing rows unchanged); `venues` gained `address_en`, `address_ar` and `is_active`; index `ix_events_status_sort`; CHECKs `ck_events_slug`, `ck_events_titles`, `ck_events_duration` (at most 18 hours; `ck_events_range` already required end after start), `ck_venues_slug`, `ck_venues_names`. New permissions `venues:read` and `venues:write` (seed).
+
+## Phase 6 additions (ticket purchasing)
+
+Migrations `20261008090000_phase6_ticketing`, `…090100_phase6_price_history_guard`, `…090200_phase6_price_overlap_refinement` and `…090300_phase6_price_overlap_null_safe`:
+
+- `orders.cancelled_by_id` (who cancelled; set to null if that user is later removed) and index `ix_orders_status_expires` (the expiry sweep).
+- **Price overlap:** `ex_ticket_prices_no_overlap` now ignores switched-off and non-standard rows (so a price can be replaced after being switched off); trigger `trg_ticket_prices_overlap` additionally refuses two active standard prices whose weekday sets merely *share a day* (for example "every day" and "weekend") on overlapping dates, taking an advisory lock per ticket type + audience so simultaneous edits cannot both succeed. Rows that would break a CHECK are left for that CHECK to report.
+- **Price history is append-only:** trigger `trg_ticket_prices_immutable` refuses changing the amount, currency, ticket type, audience, kind, priority, weekdays, special dates, promo code or start date of a price row (only `valid_to`, `is_active` and `notes` may change), and `trg_ticket_prices_no_delete` refuses deleting one.
+- New permission `ticket-types:write` (SUPER_ADMIN, ADMIN) and system setting `booking.maxTicketsPerOrder` (50). Both are seeded idempotently; existing values are never overwritten.

@@ -183,6 +183,7 @@ model User {
   usedTickets         Ticket[]             @relation("TicketUsedBy")
   createdPrices       TicketPrice[]
   createdOrders       Order[]              @relation("OrderCreatedBy")
+  cancelledOrders     Order[]              @relation("OrderCancelledBy")
   recordedPayments    Payment[]            @relation("PaymentRecordedBy")
   uploadedMedia       Media[]
   handledDataRequests DataRequest[]
@@ -449,6 +450,8 @@ model Order {
   cancelledAt    DateTime?    @map("cancelled_at") @db.Timestamptz(3)
   /// an operational reason is mandatory when an order is cancelled. Cancelling is NOT a refund (there are no refunds).
   cancelReason   String?      @map("cancel_reason")
+  /// who cancelled it (null for an order that expired or was never cancelled)
+  cancelledById  String?      @map("cancelled_by_id") @db.Uuid
   /// staff member who created a COUNTER_SALE order
   createdById    String?      @map("created_by_id") @db.Uuid
   notes          String?
@@ -457,6 +460,7 @@ model Order {
 
   customer     Customer?          @relation(fields: [customerId], references: [id], onDelete: Restrict)
   createdBy    User?              @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  cancelledBy  User?              @relation("OrderCancelledBy", fields: [cancelledById], references: [id], onDelete: SetNull)
   items        OrderItem[]
   payments     Payment[]
   tickets      Ticket[]
@@ -467,6 +471,7 @@ model Order {
   @@index([status, createdAt])
   @@index([channel, createdAt])
   @@index([createdAt])
+  @@index([status, expiresAt], map: "ix_orders_status_expires")
   @@map("orders")
 }
 

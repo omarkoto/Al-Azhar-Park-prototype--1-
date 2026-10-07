@@ -67,6 +67,13 @@ export const envSchema = z
     MEDIA_MAX_IMAGE_MB: z.coerce.number().min(0.1).max(50).default(8),
     MEDIA_MAX_PDF_MB: z.coerce.number().min(0.1).max(100).default(15),
 
+    /**
+     * Which payment provider takes online payments. 'mock' is a DEVELOPMENT stand-in that lets a tester press
+     * "pay" or "fail" (nothing real happens); it is refused in production. 'none' = online payment switched off.
+     * Unset: 'mock' in development and test, 'none' in production.
+     */
+    PAYMENT_PROVIDER: z.enum(['none', 'mock']).optional(),
+
     SEED_DEV_PASSWORD: z.string().min(12, 'must be at least 12 characters').optional(),
   })
   .superRefine((env, ctx) => {
@@ -80,6 +87,9 @@ export const envSchema = z
     }
     if (env.JWT_ACCESS_SECRET && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
       ctx.addIssue({ code: 'custom', path: ['JWT_REFRESH_SECRET'], message: 'must differ from JWT_ACCESS_SECRET' });
+    }
+    if (env.PAYMENT_PROVIDER === 'mock') {
+      ctx.addIssue({ code: 'custom', path: ['PAYMENT_PROVIDER'], message: 'the mock payment provider is for development only and is refused in production' });
     }
     if (env.AUTH_RATE_LIMIT_MULTIPLIER > 1) {
       ctx.addIssue({ code: 'custom', path: ['AUTH_RATE_LIMIT_MULTIPLIER'], message: 'must be 1 in production (it weakens brute-force protection)' });

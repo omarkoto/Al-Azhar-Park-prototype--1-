@@ -138,7 +138,7 @@ describe('ticket pricing rules (database level)', () => {
     it('does not let a price row be deleted while orders reference it', async () => {
       const today = await cairoToday(prisma);
       const { price } = await createPaidOrder(prisma, { visitDate: today });
-      await expectDbError(prisma.ticketPrice.delete({ where: { id: price.id } }), /foreign key|violat/i);
+      await expectDbError(prisma.ticketPrice.delete({ where: { id: price.id } }), /foreign key|violat|cannot be deleted/i);
     });
   });
 });

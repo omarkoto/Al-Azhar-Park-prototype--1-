@@ -71,6 +71,7 @@ export const CONTACT_INFORMATION = {
  */
 export const SYSTEM_SETTINGS = [
   { key: 'orders.pendingExpiryMinutes', value: 30, description: 'Minutes an unpaid ONLINE order stays valid before it expires' },
+  { key: 'booking.maxTicketsPerOrder', value: 50, description: 'Most tickets one online order may contain (all types together)' },
   { key: 'booking.maxAdvanceDays', value: 90, description: 'How many days ahead a visit date can be booked' },
   // Business rule: same-day tickets can be bought until exactly this many minutes before CLOSING time.
   // The closing time itself always comes from the opening-hours tables (weekly + special dates), never a constant.

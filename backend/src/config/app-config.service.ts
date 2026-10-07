@@ -26,6 +26,11 @@ export class AppConfigService {
     return this.env.JWT_REFRESH_SECRET || 'dev-only-refresh-secret-do-not-deploy-9876543210';
   }
 
+  /** The payment provider in use: the configured one, else 'mock' outside production and 'none' in production. */
+  get paymentProvider(): 'none' | 'mock' {
+    return this.env.PAYMENT_PROVIDER ?? (this.isProduction ? 'none' : 'mock');
+  }
+
   get isProduction(): boolean {
     return this.env.NODE_ENV === 'production';
   }

@@ -34,7 +34,7 @@ export function configureApp(app: NestExpressApplication): void {
     origin: (origin, callback) => callback(null, !origin || allowed.includes(origin)),
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Request-Id', 'Accept-Language'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Order-Token', 'X-Request-Id', 'Accept-Language'],
     exposedHeaders: ['X-Request-Id', 'Retry-After'],
     maxAge: 600,
   });

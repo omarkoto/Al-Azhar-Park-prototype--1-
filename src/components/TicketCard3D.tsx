@@ -2,17 +2,17 @@ import { useEffect, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform, animate, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useMoney } from '../lib/alt'
-import type { TicketCategory, TicketType } from '../lib/tickets'
 
 interface TicketCard3DProps {
-  category: TicketCategory
-  visitDate: string
-  dayType: 'weekday' | 'weekend'
-  rows: { type: TicketType; qty: number; price: number }[]
+  /** who the tickets are for, e.g. "Egyptian / resident" */
+  categoryLabel: string
+  /** the visit date as the visitor should read it (or what the day is, before one is chosen) */
+  dateLabel: string
+  rows: { key: string; label: string; qty: number; price: number }[]
   total: number
 }
 
-export function TicketCard3D({ category, visitDate, dayType, rows, total }: TicketCard3DProps) {
+export function TicketCard3D({ categoryLabel, dateLabel, rows, total }: TicketCard3DProps) {
   const { t } = useTranslation()
   const money = useMoney()
   const reduceMotion = useReducedMotion()
@@ -70,21 +70,19 @@ export function TicketCard3D({ category, visitDate, dayType, rows, total }: Tick
           <span className="absolute -start-4 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-sand-50" />
           <span className="absolute -end-4 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-sand-50" />
 
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex items-center justify-between gap-3">
             <div>
               <p className="font-display text-lg font-medium text-sand-50">{t('ticketParkName')}</p>
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-500/80">{t('admission')}</p>
             </div>
-            <span className="rounded-full border border-gold-500/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-gold-500">
-              {t(category)}
+            <span className="rounded-full border border-gold-500/40 px-3 py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-gold-500">
+              {categoryLabel}
             </span>
           </div>
 
           <div className="relative mt-6 border-t border-dashed border-sand-50/20 pt-5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sand-100/40">{t('visitDate')}</p>
-            <p className="mt-1 text-base font-semibold text-sand-50" dir="ltr">
-              {visitDate || t(dayType)}
-            </p>
+            <p className="mt-1 text-base font-semibold text-sand-50">{dateLabel}</p>
           </div>
 
           <div className="relative mt-5 space-y-2">
@@ -92,9 +90,9 @@ export function TicketCard3D({ category, visitDate, dayType, rows, total }: Tick
               <p className="text-sm text-sand-100/40">—</p>
             ) : (
               activeRows.map((row) => (
-                <div key={row.type} className="flex items-center justify-between text-sm">
+                <div key={row.key} className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-sand-100/70">
-                    {row.qty}× {t(row.type)}
+                    {row.qty}× {row.label}
                   </span>
                   <span className="font-medium text-sand-50" dir="ltr">
                     {money(row.price * row.qty)}

@@ -7,6 +7,8 @@ import { resolveRequestId } from '../http/request-id';
 export const REDACTED_PATHS = [
   'req.headers.authorization',
   'req.headers.cookie',
+  'req.headers["x-order-token"]',
+  'req.body.accessToken',
   'res.headers["set-cookie"]',
   'req.body.password',
   'req.body.currentPassword',

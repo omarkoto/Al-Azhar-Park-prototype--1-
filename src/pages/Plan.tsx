@@ -5,9 +5,10 @@ import clsx from 'clsx'
 import { useLanguage } from '../lib/language'
 import { useSeo } from '../lib/seo'
 import { useAlt, useCredit, useMoney } from '../lib/alt'
-import { useCart } from '../lib/cart'
+import { useCart, type CartLine } from '../lib/cart'
+import { makeTicketId, pounds, useBookingCatalog } from '../lib/booking'
+import { useBookingFormat } from '../lib/bookingFormat'
 import { cairoIso } from '../lib/calendar'
-import { isWeekend, ticketCatalog, type TicketCategory } from '../lib/tickets'
 import { generatePlan, type Arrival } from '../lib/plan/generate'
 import { planCopy } from '../lib/plan/copy'
 import { sunsetMinutes } from '../lib/plan/sun'
@@ -21,6 +22,7 @@ import { PageHero } from '../components/PageHero'
 import heroImage from '../assets/images/plan-hero-promenade-dusk.webp'
 import { AddToCalendar } from '../components/AddToCalendar'
 import { ArchMap } from '../components/plan/ArchMap'
+import { BookingNotes, DayNotice } from '../components/BookingNotes'
 
 const MOODS: Mood[] = ['calm', 'scenic', 'foodie', 'culture']
 const ARRIVALS: Arrival[] = ['morning', 'afternoon', 'sunset']
@@ -38,14 +40,15 @@ export function Plan() {
   const credit = useCredit()
   const money = useMoney()
   const { t } = useTranslation()
-  const { addLine, open } = useCart()
+  const { addSelection, open } = useCart()
+  const bf = useBookingFormat()
   const copy = planCopy[lang]
   useSeo({ title: copy.eyebrow, description: copy.lead, path: '/plan' })
 
   const [date, setDate] = useState(() => localDate(1))
   const [adults, setAdults] = useState(2)
   const [children, setChildren] = useState(0)
-  const [category, setCategory] = useState<TicketCategory>('resident')
+  const [category, setCategory] = useState('RESIDENT')
   const [arrival, setArrival] = useState<Arrival>('sunset')
   const [hours, setHours] = useState<2 | 4 | 6>(4)
   const [mood, setMood] = useState<Mood>('scenic')
@@ -59,28 +62,32 @@ export function Plan() {
   const fmt = (min: number) =>
     new Intl.DateTimeFormat(lang === 'ar' ? 'ar-EG' : 'en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(new Date(min * 60000))
 
-  const dayType = isWeekend(new Date(`${validDate}T12:00:00`)) ? 'weekend' : 'weekday'
-  const ticketRows = (['adult', 'child'] as const).map((type) => ({
-    type,
-    qty: type === 'adult' ? adults : children,
-    ticket: ticketCatalog.find((tk) => tk.category === category && tk.type === type && tk.day === dayType)!,
-  }))
-  const total = ticketRows.reduce((sum, r) => sum + r.ticket.price * r.qty, 0)
+  // Ticket prices and the booking rules come from the park's server; this page only picks quantities.
+  const { status: bookingStatus, catalog, day, dayLoading } = useBookingCatalog(validDate)
+  const audiences = catalog?.audiences ?? []
+  const canSell = !!day?.sale.allowed && day.date === validDate && !dayLoading
+  const ticketRows = ([['ADULT', adults], ['CHILD', children]] as const).map(([code, qty]) => {
+    const type = catalog?.ticketTypes.find((tp) => tp.code === code)
+    const price = day?.prices.find((pr) => pr.audience === category && pr.ticketType === code)
+    return { code, type, qty, price: price ? pounds(price.amountMinor) : null }
+  })
+  const priced = ticketRows.every((r) => r.qty === 0 || (r.type && r.price !== null))
+  const total = canSell && priced ? ticketRows.reduce((sum, r) => sum + (r.price ?? 0) * r.qty, 0) : 0
+  const maxTickets = catalog?.policy.maxTicketsPerOrder ?? 50
+  const audienceInfo = audiences.find((a) => a.code === category)
 
   function addTickets() {
-    for (const row of ticketRows) {
-      if (row.qty > 0) {
-        addLine(
-          {
-            ticketId: row.ticket.id,
-            label: `${t(row.type)} — ${t(category)} (${t(dayType)})`,
-            unitPrice: row.ticket.price,
-            visitDate: validDate,
-          },
-          row.qty,
-        )
-      }
-    }
+    if (!canSell || !priced) return
+    const lines: CartLine[] = ticketRows
+      .filter((r) => r.qty > 0 && r.type)
+      .map((r) => ({
+        ticketId: makeTicketId(category, r.code),
+        label: `${bf.name(r.type!)} — ${audienceInfo ? bf.name(audienceInfo) : ''} (${t(day?.dayType === 'WEEKEND' ? 'weekend' : 'weekday')})`,
+        unitPrice: r.price as number,
+        qty: r.qty,
+        visitDate: validDate,
+      }))
+    addSelection(lines)
     setAdded(true)
     open()
     window.setTimeout(() => setAdded(false), 2200)
@@ -111,7 +118,8 @@ export function Plan() {
               <input
                 type="date"
                 value={date}
-                min={localDate(0)}
+                min={catalog?.today ?? localDate(0)}
+                max={catalog?.lastBookableDate}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-xl border border-ink-900/15 bg-sand-50 px-4 py-3 text-sm text-ink-900 outline-none focus:border-teal-700"
               />
@@ -119,15 +127,20 @@ export function Plan() {
 
             <Field label={copy.guests}>
               <div className="space-y-2">
-                <Stepper label={copy.adults} value={adults} min={1} max={12} onChange={setAdults} />
-                <Stepper label={copy.children} value={children} min={0} max={12} onChange={setChildren} />
+                <Stepper label={copy.adults} value={adults} min={1} max={Math.max(1, Math.min(12, maxTickets - children))} onChange={setAdults} />
+                <Stepper label={copy.children} value={children} min={0} max={Math.max(0, Math.min(12, maxTickets - adults))} onChange={setChildren} />
               </div>
               <Chips
                 className="mt-3"
                 value={category}
-                options={(['resident', 'visitor'] as TicketCategory[]).map((c) => ({ value: c, label: c === 'resident' ? copy.resident : copy.visitor }))}
-                onChange={(v) => setCategory(v as TicketCategory)}
+                options={
+                  audiences.length > 0
+                    ? audiences.map((a) => ({ value: a.code, label: bf.name(a) }))
+                    : [{ value: 'RESIDENT', label: copy.resident }, { value: 'VISITOR', label: copy.visitor }]
+                }
+                onChange={(v) => setCategory(v)}
               />
+              {day && day.date === validDate ? <DayNotice day={day} /> : null}
             </Field>
 
             <Field label={copy.arrival}>
@@ -166,10 +179,17 @@ export function Plan() {
                     {money(total)}
                   </p>
                 </div>
-                <Button onClick={addTickets} className="min-w-52 justify-center">
-                  {added ? `✓ ${copy.ticketsAdded}` : copy.addTickets}
-                </Button>
+                {bookingStatus === 'unavailable' ? (
+                  <p className="max-w-xs text-sm text-ink-900/65" data-testid="booking-unavailable">
+                    {t('bookUnavailableTitle')}
+                  </p>
+                ) : (
+                  <Button onClick={addTickets} disabled={!canSell || !priced} className="min-w-52 justify-center">
+                    {added ? `✓ ${copy.ticketsAdded}` : copy.addTickets}
+                  </Button>
+                )}
               </div>
+              <BookingNotes catalog={catalog} className="mt-5" />
               <AddToCalendar className="mt-6 border-t border-ink-900/10 pt-6" entry={calendarEntry} filename={`plan-${validDate}`} />
             </Reveal>
         </Container>

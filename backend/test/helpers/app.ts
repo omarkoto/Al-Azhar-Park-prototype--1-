@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { AppModule } from '../../src/app.module';
+import { Clock } from '../../src/common/clock';
 import { configureApp } from '../../src/app.factory';
 import { AppException } from '../../src/common/errors/app-exception';
 import { paginationQuerySchema, buildMeta } from '../../src/common/dto/pagination';
@@ -55,6 +56,20 @@ class GuardedProbeController {
   }
 }
 
+/** A clock tests can set: `app.get(Clock)` is one of these. Until `set()` is called it follows real time. */
+export class TestClock extends Clock {
+  private fixed: Date | null = null;
+  now(): Date {
+    return this.fixed ? new Date(this.fixed) : new Date();
+  }
+  set(instant: Date | null): void {
+    this.fixed = instant;
+  }
+  advance(ms: number): void {
+    this.fixed = new Date(this.now().getTime() + ms);
+  }
+}
+
 /** Replaces the e-mail delivery so tests can read the one-time tokens a real person would receive. */
 export class CapturingNotifier extends PasswordLinkNotifier {
   readonly messages: PasswordLinkMessage[] = [];
@@ -80,7 +95,7 @@ export async function createTestApp(env: Record<string, string> = {}, notifier?:
     process.env[k] = v;
   }
   try {
-    const builder = Test.createTestingModule({ imports: [AppModule, ProbeModule] });
+    const builder = Test.createTestingModule({ imports: [AppModule, ProbeModule] }).overrideProvider(Clock).useClass(TestClock);
     if (notifier) builder.overrideProvider(PasswordLinkNotifier).useValue(notifier);
     const moduleRef = await builder.compile();
     const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false });

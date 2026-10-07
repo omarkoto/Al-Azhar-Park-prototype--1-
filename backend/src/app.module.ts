@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
 import { MediaModule } from './modules/media/media.module';
+import { TicketingModule } from './modules/ticketing/ticketing.module';
 import { EventsModule } from './modules/events/events.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ParkModule } from './modules/park/park.module';
@@ -41,8 +42,9 @@ import { UsersModule } from './modules/users/users.module';
     MediaModule,
     RestaurantsModule,
     EventsModule,
+    TicketingModule,
     //
-    //           TicketingModule, ScansModule, AnalyticsModule, MediaModule …
+    //           ScansModule, AnalyticsModule, MediaModule …
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

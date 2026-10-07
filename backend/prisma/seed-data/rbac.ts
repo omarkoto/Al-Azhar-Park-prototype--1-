@@ -32,6 +32,7 @@ export const PERMISSIONS: ReadonlyArray<readonly [code: string, description: str
   ['media:write', 'Upload and delete media'],
 
   ['ticket-types:read', 'View ticket types and the current price list'],
+  ['ticket-types:write', 'Create and edit ticket types, switch them on or off, set their order'],
   ['pricing:read', 'View price history and price rules'],
   ['pricing:write', 'Create and change ticket prices'],
 
@@ -89,7 +90,7 @@ export const ROLES: readonly RoleSeed[] = [
       'park:read', 'park:write', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
       'restaurants:read', 'restaurants:write', 'menus:read', 'menus:write',
       'events:read', 'events:write', 'events:publish', 'venues:read', 'venues:write', 'media:read', 'media:write',
-      'ticket-types:read', 'pricing:read', 'pricing:write',
+      'ticket-types:read', 'ticket-types:write', 'pricing:read', 'pricing:write',
       'customers:read', 'customers:privacy',
       'orders:read', 'orders:cancel', 'payments:read', 'payments:record_cash', 'counter-sales:create',
       'tickets:read', 'tickets:cancel', 'tickets:resend',

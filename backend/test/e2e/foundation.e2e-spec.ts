@@ -126,9 +126,11 @@ describe('HTTP foundation (e2e)', () => {
         .options(`${API}/__probe/echo`)
         .set('Origin', 'http://localhost:5173')
         .set('Access-Control-Request-Method', 'POST')
-        .set('Access-Control-Request-Headers', 'content-type,idempotency-key')
+        .set('Access-Control-Request-Headers', 'content-type,idempotency-key,x-order-token')
         .expect(204);
       expect(res.headers['access-control-allow-headers']?.toLowerCase()).toContain('idempotency-key');
+      // the customer's private order key travels in this header
+      expect(res.headers['access-control-allow-headers']?.toLowerCase()).toContain('x-order-token');
     });
   });
 

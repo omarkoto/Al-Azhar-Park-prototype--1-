@@ -12,6 +12,7 @@ import { Gallery } from './pages/Gallery'
 import { Tickets } from './pages/Tickets'
 import { Plan } from './pages/Plan'
 import { Checkout } from './pages/Checkout'
+import { OrderStatus } from './pages/OrderStatus'
 import { Contact } from './pages/Contact'
 import { NotFound } from './pages/NotFound'
 
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="plan" element={<Plan />} />
         <Route path="visit" element={<Navigate to="/tickets" replace />} />
         <Route path="checkout" element={<Checkout />} />
+        <Route path="orders/:orderNumber" element={<OrderStatus />} />
         <Route path="contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Route>

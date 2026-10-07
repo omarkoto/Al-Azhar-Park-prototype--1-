@@ -104,3 +104,15 @@ describe('AUTH_RATE_LIMIT_MULTIPLIER', () => {
     expect(() => validateEnv({ ...prod })).not.toThrow();
   });
 });
+
+describe('PAYMENT_PROVIDER', () => {
+  const base = { DATABASE_URL: 'postgresql://u:p@localhost/x' };
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  it('is optional, accepts none and mock outside production, and refuses mock in production', () => {
+    expect(validateEnv(base).PAYMENT_PROVIDER).toBeUndefined();
+    expect(validateEnv({ ...base, PAYMENT_PROVIDER: 'mock' }).PAYMENT_PROVIDER).toBe('mock');
+    expect(() => validateEnv({ ...base, PAYMENT_PROVIDER: 'paymob' })).toThrow(/PAYMENT_PROVIDER/);
+    expect(() => validateEnv({ ...prod, PAYMENT_PROVIDER: 'mock' })).toThrow(/development only/);
+    expect(() => validateEnv({ ...prod, PAYMENT_PROVIDER: 'none' })).not.toThrow();
+  });
+});
