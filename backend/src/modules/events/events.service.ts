@@ -8,7 +8,7 @@ import { AuditService, RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { MediaService, mediaView, MediaView } from '../media/media.service';
 import { parkDateOf } from '../ticketing/rules/calendar';
-import { parkInstant } from '../ticketing/rules/event-window';
+import { parkDayStart } from '../ticketing/rules/event-window';
 import { auditActionFor, canTransition, EventStatusValue, PUBLIC_STATUSES } from './event-status';
 import { describeEventTimes, EventTimeError, resolveEventTimes } from './event-time';
 import { CreateEventDto, UpdateEventDto } from './events.dto';
@@ -268,7 +268,7 @@ export class EventsService {
 
   /** Published events. By default only the ones that have not finished yet. */
   async listPublished(when: 'upcoming' | 'past' | 'all'): Promise<PublicEvent[]> {
-    const startOfToday = parkInstant(parkDateOf(new Date()), '00:00');
+    const startOfToday = parkDayStart(parkDateOf(new Date()));
     const notFinished: Prisma.EventWhereInput = { OR: [{ endsAt: { gte: new Date() } }, { endsAt: null, startsAt: { gte: startOfToday } }] };
     const rows = await this.prisma.event.findMany({
       where: { deletedAt: null, status: 'PUBLISHED', ...(when === 'upcoming' ? notFinished : when === 'past' ? { NOT: notFinished } : {}) },

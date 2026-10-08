@@ -1,5 +1,5 @@
 import { hhmmToMinutes, parkMoment } from '../ticketing/rules/calendar';
-import { eventWindow, parkInstant } from '../ticketing/rules/event-window';
+import { eventWindow, parkDayStart } from '../ticketing/rules/event-window';
 
 /** An event lasts at most this long (also a database CHECK). Longer or multi-day events use a date label. */
 export const MAX_EVENT_HOURS = 18;
@@ -39,7 +39,7 @@ export function resolveEventTimes(input: { date: string; startTime?: string | nu
     throw new EventTimeError('TIMES_TOGETHER', 'Give both the start time and the end time, or neither.');
   }
   try {
-    if (!startTime || !endTime) return { startsAt: parkInstant(date, '00:00'), endsAt: null, crossesMidnight: false };
+    if (!startTime || !endTime) return { startsAt: parkDayStart(date), endsAt: null, crossesMidnight: false };
     if (hhmmToMinutes(startTime) === hhmmToMinutes(endTime)) {
       throw new EventTimeError('SAME_TIME', 'The end time must differ from the start time.');
     }

@@ -16,6 +16,19 @@ export function parkInstant(date: string, hhmm: string): Date {
   throw new Error(`The time ${hhmm} does not exist in Cairo on ${date} (clocks change that night).`);
 }
 
+/**
+ * The first instant of a Cairo calendar day. Normally that is 00:00, but on the last Friday of April the clocks go from
+ * 00:00 straight to 01:00, so that day has no midnight and starts at 01:00 (`parkInstant(date, '00:00')` throws there).
+ * Use this for "from the start of the day" boundaries; the end of a day is the start of the next one.
+ */
+export function parkDayStart(date: string): Date {
+  try {
+    return parkInstant(date, '00:00');
+  } catch {
+    return parkInstant(date, '01:00');
+  }
+}
+
 export interface EventWindow {
   startsAt: Date;
   endsAt: Date;

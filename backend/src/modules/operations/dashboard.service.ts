@@ -5,7 +5,7 @@ import { AuthenticatedUser } from '../auth/auth.types';
 import { describeEventTimes } from '../events/event-time';
 import { BookingConfigService } from '../ticketing/booking-config.service';
 import { addDays, dateToIso, minutesToHhmm, parkMoment, timeToHhmm } from '../ticketing/rules/calendar';
-import { parkInstant } from '../ticketing/rules/event-window';
+import { parkDayStart } from '../ticketing/rules/event-window';
 import { coveringSpecial, resolveHours } from '../ticketing/rules/opening-hours';
 import { evaluateSale } from '../ticketing/rules/sales-window';
 
@@ -83,8 +83,8 @@ export class DashboardService {
   async today(actor: AuthenticatedUser): Promise<DashboardView> {
     const now = this.clock.now();
     const date = parkMoment(now).date;
-    const start = parkInstant(date, '00:00');
-    const end = parkInstant(addDays(date, 1), '00:00');
+    const start = parkDayStart(date);
+    const end = parkDayStart(addDays(date, 1));
     const has = (p: string) => actor.permissions.has(p);
     const view: DashboardView = { generatedAt: now, date };
 

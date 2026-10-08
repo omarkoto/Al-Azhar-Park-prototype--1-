@@ -6,7 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService, RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { addDays, parkDateOf } from '../ticketing/rules/calendar';
-import { parkInstant } from '../ticketing/rules/event-window';
+import { parkDayStart } from '../ticketing/rules/event-window';
 import { CreateGateDto, UpdateGateDto } from './operations.dto';
 
 export interface GateRow {
@@ -39,7 +39,7 @@ export class GatesService {
     const gates = await this.prisma.gate.findMany({ orderBy: { code: 'asc' } });
     if (!actor.permissions.has('scans:read')) return gates.map((g) => ({ id: g.id, code: g.code, nameEn: g.nameEn, nameAr: g.nameAr, isActive: g.isActive, createdAt: g.createdAt }));
     const today = parkDateOf(this.clock.now());
-    const range = { gte: parkInstant(today, '00:00'), lt: parkInstant(addDays(today, 1), '00:00') };
+    const range = { gte: parkDayStart(today), lt: parkDayStart(addDays(today, 1)) };
     const [totals, todays, last] = await Promise.all([
       this.prisma.ticketScan.groupBy({ by: ['gateId'], _count: { _all: true } }),
       this.prisma.ticketScan.groupBy({ by: ['gateId', 'result'], where: { scannedAt: range }, _count: { _all: true } }),

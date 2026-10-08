@@ -6,7 +6,7 @@ import { PageResult } from '../../common/http/envelope';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { addDays } from '../ticketing/rules/calendar';
-import { parkInstant } from '../ticketing/rules/event-window';
+import { parkDayStart } from '../ticketing/rules/event-window';
 import { ListScansQueryDto } from './operations.dto';
 
 /**
@@ -24,7 +24,7 @@ export class ScansHistoryService {
       ...(all ? {} : { scannedById: actor.id }),
       ...(query.outcome ? { result: query.outcome === 'granted' ? 'VALID' : 'INVALID' } : {}),
       ...(query.gateId ? { gateId: query.gateId } : {}),
-      ...(query.date ? { scannedAt: { gte: parkInstant(query.date, '00:00'), lt: parkInstant(addDays(query.date, 1), '00:00') } } : {}),
+      ...(query.date ? { scannedAt: { gte: parkDayStart(query.date), lt: parkDayStart(addDays(query.date, 1)) } } : {}),
       ...(query.search ? { ticket: { publicRef: { contains: query.search.toUpperCase() } } } : {}),
     };
     const [total, rows] = await Promise.all([
