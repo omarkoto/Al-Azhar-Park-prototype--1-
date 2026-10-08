@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
 import { AppConfigService } from '../../config/app-config.service';
 import { OrderLifecycleService } from './order-lifecycle.service';
+import { TicketDeliveryService } from './ticket-delivery.service';
 
 const SWEEP_EVERY_MS = 60_000;
 
@@ -16,6 +17,7 @@ export class OrderExpiryScheduler implements OnApplicationBootstrap, OnApplicati
 
   constructor(
     private readonly lifecycle: OrderLifecycleService,
+    private readonly delivery: TicketDeliveryService,
     private readonly config: AppConfigService,
   ) {}
 
@@ -25,6 +27,11 @@ export class OrderExpiryScheduler implements OnApplicationBootstrap, OnApplicati
       this.lifecycle.expireAllDue().then(
         (n) => n > 0 && this.log.log(`expired ${n} unpaid order(s)`),
         (e: unknown) => this.log.error(`sweep failed: ${String(e)}`),
+      );
+      // failed ticket e-mails whose retry time has come
+      this.delivery.retryDue().then(
+        (n) => n > 0 && this.log.log(`retried ${n} e-mail(s)`),
+        (e: unknown) => this.log.error(`e-mail retry failed: ${String(e)}`),
       );
     }, SWEEP_EVERY_MS);
     this.timer.unref();

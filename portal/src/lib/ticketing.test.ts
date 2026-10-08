@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ageRange, canCancelOrder, dayBefore, emptyTypeForm, formatDay, money, parseEgp, priceProblems, reasonProblem, typeProblems } from './ticketing'
+import { ageRange, canCancelOrder, canCancelTicket, canResendTickets, emailSummary, dayBefore, emptyTypeForm, formatDay, money, parseEgp, priceProblems, reasonProblem, typeProblems } from './ticketing'
 
 describe('money', () => {
   it('shows whole pounds without decimals and keeps piastres', () => {
@@ -36,6 +36,26 @@ describe('cancellation reason', () => {
     expect(canCancelOrder('PAID')).toBe(true)
     expect(canCancelOrder('CANCELLED')).toBe(false)
     expect(canCancelOrder('EXPIRED')).toBe(false)
+  })
+})
+
+describe('tickets and e-mail', () => {
+  const at = (iso: string | null) => (iso ? 'T' : '—')
+  it('lets staff cancel only a waiting or valid ticket', () => {
+    expect(canCancelTicket('VALID')).toBe(true)
+    expect(canCancelTicket('PENDING')).toBe(true)
+    for (const s of ['USED', 'CANCELLED', 'EXPIRED']) expect(canCancelTicket(s)).toBe(false)
+  })
+  it('offers a resend only for a paid order', () => {
+    expect(canResendTickets('PAID')).toBe(true)
+    for (const s of ['PENDING_PAYMENT', 'CANCELLED', 'EXPIRED'] as const) expect(canResendTickets(s)).toBe(false)
+  })
+  it('says what happened to an e-mail and what comes next', () => {
+    expect(emailSummary({ status: 'SENT', attempts: 1, nextAttemptAt: null, sentAt: 'x' }, at)).toBe('Sent T')
+    expect(emailSummary({ status: 'PENDING', attempts: 0, nextAttemptAt: null, sentAt: null }, at)).toMatch(/Waiting/)
+    expect(emailSummary({ status: 'FAILED', attempts: 2, nextAttemptAt: 'x', sentAt: null }, at)).toMatch(/attempt 2 of 5\); next try T/)
+    expect(emailSummary({ status: 'FAILED', attempts: 5, nextAttemptAt: null, sentAt: null }, at)).toMatch(/will not be tried again.*Resend/)
+    expect(emailSummary({ status: 'FAILED', attempts: 1, nextAttemptAt: null, sentAt: null }, at)).toMatch(/after 1 attempt;/)
   })
 })
 

@@ -116,3 +116,26 @@ describe('PAYMENT_PROVIDER', () => {
     expect(() => validateEnv({ ...prod, PAYMENT_PROVIDER: 'none' })).not.toThrow();
   });
 });
+
+describe('e-mail and QR key settings', () => {
+  const base = { DATABASE_URL: 'postgresql://u:p@localhost/x' };
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  it('accepts the three e-mail providers outside production, and refuses unknown ones', () => {
+    for (const p of ['none', 'log', 'smtp']) expect(validateEnv({ ...base, EMAIL_PROVIDER: p }).EMAIL_PROVIDER).toBe(p);
+    expect(() => validateEnv({ ...base, EMAIL_PROVIDER: 'carrier-pigeon' })).toThrow(/EMAIL_PROVIDER/);
+  });
+  it('production refuses the development log provider and needs smtp settings for smtp', () => {
+    expect(() => validateEnv({ ...prod, EMAIL_PROVIDER: 'log' })).toThrow(/development only/);
+    expect(() => validateEnv({ ...prod, EMAIL_PROVIDER: 'smtp' })).toThrow(/EMAIL_SMTP_URL/);
+    expect(() => validateEnv({ ...prod, EMAIL_PROVIDER: 'smtp', EMAIL_SMTP_URL: 'smtps://u:p@mail.example.com:465', EMAIL_FROM: 'Park <t@example.com>' })).not.toThrow();
+    expect(() => validateEnv({ ...prod, EMAIL_PROVIDER: 'none' })).not.toThrow();
+  });
+  it('checks the QR key ring: JSON, long secrets, and an active key that exists', () => {
+    const keys = JSON.stringify({ 1: 'a'.repeat(32), 2: 'b'.repeat(32) });
+    expect(() => validateEnv({ ...base, TICKET_QR_KEYS: keys, TICKET_QR_ACTIVE_KEY_ID: '2' })).not.toThrow();
+    expect(() => validateEnv({ ...base, TICKET_QR_KEYS: keys, TICKET_QR_ACTIVE_KEY_ID: '3' })).toThrow(/key ids/);
+    expect(() => validateEnv({ ...base, TICKET_QR_KEYS: '{"1":"short"}' })).toThrow(/TICKET_QR_KEYS/);
+    expect(() => validateEnv({ ...base, TICKET_QR_KEYS: 'not json' })).toThrow(/TICKET_QR_KEYS/);
+    expect(() => validateEnv({ ...base, TICKET_QR_KEYS: '[]' })).toThrow(/TICKET_QR_KEYS/);
+  });
+});

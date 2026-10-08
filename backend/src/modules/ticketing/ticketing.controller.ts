@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Header, Headers, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Res, StreamableFile } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AppException } from '../../common/errors/app-exception';
+import { SkipEnvelope } from '../../common/http/envelope';
 import { RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser, Public, RequestCtx, RequirePermissions } from '../auth/decorators';
@@ -12,7 +13,7 @@ import { PricesService } from './prices.service';
 import { PurchaseService } from './purchase.service';
 import { TicketTypesService } from './ticket-types.service';
 import {
-  CancelOrderDto, CatalogQueryDto, CreateOrderDto, CreatePriceDto, CreateTicketTypeDto, ListOrdersQueryDto, ListPricesQueryDto, MockCompleteDto, OrderIdsDto, QuoteDto, SetPriceActiveDto,
+  CancelOrderDto, CatalogQueryDto, TicketPdfQueryDto, CreateOrderDto, CreatePriceDto, CreateTicketTypeDto, ListOrdersQueryDto, ListPricesQueryDto, MockCompleteDto, OrderIdsDto, QuoteDto, SetPriceActiveDto,
   UpdateTicketTypeDto,
 } from './ticketing.dto';
 
@@ -72,6 +73,31 @@ export class PublicTicketingController {
   @ApiOperation({ summary: 'Your order, with the access key given when it was created (header X-Order-Token)' })
   order(@Param('orderNumber') orderNumber: string, @Headers('x-order-token') token: string | undefined) {
     return this.orders.getForCustomer(orderNumber, token);
+  }
+
+  @Public()
+  @Get('orders/:orderNumber/tickets/pdf')
+  @SkipEnvelope()
+  @Throttle({ default: { limit: limit(30), ttl: MINUTE } })
+  @ApiOperation({ summary: 'All the tickets of your paid order as one PDF (header X-Order-Token). ?lang=en|ar' })
+  async allTicketsPdf(@Param('orderNumber') orderNumber: string, @Headers('x-order-token') token: string | undefined, @Query() query: TicketPdfQueryDto, @Res({ passthrough: true }) res: Response) {
+    return this.sendPdf(res, await this.orders.ticketsPdf(orderNumber, token, { lang: query.lang }));
+  }
+
+  @Public()
+  @Get('orders/:orderNumber/tickets/:ref/pdf')
+  @SkipEnvelope()
+  @Throttle({ default: { limit: limit(30), ttl: MINUTE } })
+  @ApiOperation({ summary: 'One ticket of your paid order as a PDF (header X-Order-Token). ?lang=en|ar' })
+  async oneTicketPdf(@Param('orderNumber') orderNumber: string, @Param('ref') ref: string, @Headers('x-order-token') token: string | undefined, @Query() query: TicketPdfQueryDto, @Res({ passthrough: true }) res: Response) {
+    if (!/^TKT-[0-9A-Z]{8,16}$/.test(ref)) throw new AppException('TICKET_NOT_FOUND', 'Ticket not found.', 404);
+    return this.sendPdf(res, await this.orders.ticketsPdf(orderNumber, token, { ref, lang: query.lang }));
+  }
+
+  /** Tickets are private: never stored by a shared cache, and always offered as a download. */
+  private sendPdf(res: Response, pdf: { filename: string; data: Buffer }): StreamableFile {
+    res.set({ 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${pdf.filename}"`, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' });
+    return new StreamableFile(pdf.data);
   }
 
   @Public()
@@ -181,6 +207,23 @@ export class TicketingAdminController {
   @RequirePermissions('orders:read')
   getOrder(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AuthenticatedUser) {
     return this.orders.get(id, actor);
+  }
+
+  @Post('orders/:id/resend-email')
+  @HttpCode(200)
+  @RequirePermissions('tickets:resend')
+  @Throttle({ default: { limit: 20, ttl: MINUTE } })
+  @ApiOperation({ summary: 'Send the ticket e-mail of a paid order again (audited)' })
+  resendEmail(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AuthenticatedUser, @RequestCtx() ctx: RequestContext) {
+    return this.orders.resendEmail(id, actor, ctx);
+  }
+
+  @Post('orders/:id/tickets/:ref/cancel')
+  @HttpCode(200)
+  @RequirePermissions('tickets:cancel')
+  @ApiOperation({ summary: 'Cancel one ticket for an operational reason. This is not a refund.' })
+  cancelTicket(@Param('id', ParseUUIDPipe) id: string, @Param('ref') ref: string, @Body() dto: CancelOrderDto, @CurrentUser() actor: AuthenticatedUser, @RequestCtx() ctx: RequestContext) {
+    return this.orders.cancelTicket(id, ref, dto.reason, actor, ctx);
   }
 
   @Post('orders/:id/cancel')

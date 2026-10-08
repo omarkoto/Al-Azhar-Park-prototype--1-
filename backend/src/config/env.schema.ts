@@ -74,9 +74,42 @@ export const envSchema = z
      */
     PAYMENT_PROVIDER: z.enum(['none', 'mock']).optional(),
 
+    /**
+     * How e-mail is delivered. 'log' (development) writes the message to the log instead of sending it; 'smtp' sends
+     * it through EMAIL_SMTP_URL; 'none' sends nothing (messages wait in the outbox and show as failed in the portal).
+     * Unset: 'log' outside production, 'none' in production.
+     */
+    EMAIL_PROVIDER: z.enum(['none', 'log', 'smtp']).optional(),
+    /** e.g. smtps://user:password@smtp.example.com:465 — a secret: never logged */
+    EMAIL_SMTP_URL: z.string().optional(),
+    EMAIL_FROM: z.string().optional(),
+    /** the website's address, used for links in e-mails, e.g. https://www.azharpark.com */
+    PUBLIC_SITE_URL: z.string().url().optional(),
+
+    /**
+     * QR signing keys, to rotate them: a JSON object of key id → secret (each at least 32 characters), for example
+     * {"1":"…","2":"…"}. Tickets say which key signed them, so old tickets keep working after a rotation.
+     * Unset: key 1 is TICKET_TOKEN_PEPPER. New tickets are signed with TICKET_QR_ACTIVE_KEY_ID (default 1).
+     */
+    TICKET_QR_KEYS: z.string().optional(),
+    TICKET_QR_ACTIVE_KEY_ID: z.coerce.number().int().min(0).max(999).default(1),
+
     SEED_DEV_PASSWORD: z.string().min(12, 'must be at least 12 characters').optional(),
   })
   .superRefine((env, ctx) => {
+    if (env.TICKET_QR_KEYS !== undefined) {
+      try {
+        const keys = JSON.parse(env.TICKET_QR_KEYS) as Record<string, unknown>;
+        const ok = keys && typeof keys === 'object' && !Array.isArray(keys) && Object.keys(keys).length > 0 &&
+          Object.entries(keys).every(([id, secret]) => /^\d{1,3}$/.test(id) && typeof secret === 'string' && secret.length >= 32);
+        if (!ok) throw new Error('shape');
+        if (!(String(env.TICKET_QR_ACTIVE_KEY_ID) in keys)) {
+          ctx.addIssue({ code: 'custom', path: ['TICKET_QR_ACTIVE_KEY_ID'], message: 'must be one of the key ids in TICKET_QR_KEYS' });
+        }
+      } catch {
+        ctx.addIssue({ code: 'custom', path: ['TICKET_QR_KEYS'], message: 'must be a JSON object of key id → secret (each at least 32 characters)' });
+      }
+    }
     if (env.NODE_ENV !== 'production') return;
 
     for (const key of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'TICKET_TOKEN_PEPPER'] as const) {
@@ -87,6 +120,12 @@ export const envSchema = z
     }
     if (env.JWT_ACCESS_SECRET && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
       ctx.addIssue({ code: 'custom', path: ['JWT_REFRESH_SECRET'], message: 'must differ from JWT_ACCESS_SECRET' });
+    }
+    if (env.EMAIL_PROVIDER === 'smtp' && (!env.EMAIL_SMTP_URL || !env.EMAIL_FROM)) {
+      ctx.addIssue({ code: 'custom', path: ['EMAIL_PROVIDER'], message: 'smtp needs EMAIL_SMTP_URL and EMAIL_FROM' });
+    }
+    if (env.EMAIL_PROVIDER === 'log') {
+      ctx.addIssue({ code: 'custom', path: ['EMAIL_PROVIDER'], message: 'the log provider is for development only (it sends nothing) and is refused in production' });
     }
     if (env.PAYMENT_PROVIDER === 'mock') {
       ctx.addIssue({ code: 'custom', path: ['PAYMENT_PROVIDER'], message: 'the mock payment provider is for development only and is refused in production' });

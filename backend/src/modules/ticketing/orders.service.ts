@@ -10,7 +10,10 @@ import { AuthenticatedUser } from '../auth/auth.types';
 import { TokenService } from '../auth/token.service';
 import { PaymentsService, PaymentView } from '../payments/payments.service';
 import { OrderLifecycleService } from './order-lifecycle.service';
-import { ORDER_INCLUDE, OrderView, orderView } from './order-view';
+import { QrService } from './qr.service';
+import { TicketDeliveryService } from './ticket-delivery.service';
+import { TicketPdfService } from './ticket-pdf.service';
+import { ORDER_INCLUDE, OrderRow, OrderView, orderView } from './order-view';
 import { dateToIso } from './rules/calendar';
 import { ListOrdersQueryDto } from './ticketing.dto';
 
@@ -26,6 +29,9 @@ export class OrdersService {
     private readonly payments: PaymentsService,
     private readonly audit: AuditService,
     private readonly clock: Clock,
+    private readonly qr: QrService,
+    private readonly pdf: TicketPdfService,
+    private readonly delivery: TicketDeliveryService,
   ) {}
 
   // ───────────────────────────── customer ─────────────────────────────
@@ -37,7 +43,41 @@ export class OrdersService {
   async getForCustomer(orderNumber: string, token: string | undefined): Promise<OrderView> {
     const order = await this.authorise(orderNumber, token);
     await this.lifecycle.expireIfDue(order.id);
-    return orderView(await this.prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: ORDER_INCLUDE }), this.payments.isMock);
+    const fresh = await this.prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: ORDER_INCLUDE });
+    return orderView(fresh, this.payments.isMock, await this.qrImages(fresh));
+  }
+
+  /** The QR image of every valid ticket of a PAID order. Nobody gets a usable code for an order that is not paid. */
+  private async qrImages(order: OrderRow): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (order.status !== 'PAID') return out;
+    for (const t of order.tickets) if (t.status === 'VALID') out.set(t.publicRef, await this.qr.dataUrl(this.qr.payloadFor(t)));
+    return out;
+  }
+
+  /**
+   * The ticket PDF of a paid order (all its tickets, or just one), for the holder of the order's private key.
+   * Built from the stored tickets only: the request can say which ticket and which language, nothing else.
+   */
+  async ticketsPdf(orderNumber: string, token: string | undefined, options: { ref?: string; lang?: 'en' | 'ar' }): Promise<{ filename: string; data: Buffer }> {
+    const base = await this.authorise(orderNumber, token);
+    await this.lifecycle.expireIfDue(base.id);
+    const order = await this.prisma.order.findUniqueOrThrow({ where: { id: base.id }, include: ORDER_INCLUDE });
+    if (order.status !== 'PAID') throw new AppException('TICKETS_NOT_AVAILABLE', 'Tickets are available once the order is paid.', 409);
+    const items = new Map(order.items.map((i) => [i.id, i]));
+    const tickets = order.tickets.filter((t) => (t.status === 'VALID' || t.status === 'USED') && (options.ref === undefined || t.publicRef === options.ref));
+    if (tickets.length === 0) throw new AppException('TICKET_NOT_FOUND', 'Ticket not found.', 404);
+    const data = await this.pdf.render({
+      locale: options.lang ?? (order.locale === 'ar' ? 'ar' : 'en'), orderNumber: order.orderNumber, visitDate: dateToIso(order.visitDate),
+      tickets: tickets.map((t) => {
+        const i = items.get(t.orderItemId);
+        return {
+          publicRef: t.publicRef, qrKeyId: t.qrKeyId, status: t.status, typeNameEn: i?.typeNameEn ?? '', typeNameAr: i?.typeNameAr ?? '',
+          audienceNameEn: i?.audienceNameEn ?? '', audienceNameAr: i?.audienceNameAr ?? '', pricePaidMinor: t.pricePaidMinor, currency: t.currency,
+        };
+      }),
+    });
+    return { filename: options.ref ? `${options.ref}.pdf` : `al-azhar-park-${order.orderNumber}.pdf`, data };
   }
 
   /** A new payment attempt for an unpaid order (after a failed one). */
@@ -108,8 +148,35 @@ export class OrdersService {
       })),
       ticketCounts: tickets.reduce<Record<string, number>>((acc, t) => ({ ...acc, [t.status]: (acc[t.status] ?? 0) + 1 }), {}),
       tickets: seeTickets ? tickets.map((t) => ({ ref: t.publicRef, status: t.status, typeNameEn: items.get(t.orderItemId)?.typeNameEn ?? '', pricePaidMinor: t.pricePaidMinor })) : undefined,
+      emails: actor.permissions.has('notifications:read') ? await this.delivery.forOrder(o.id) : undefined,
       payments: seePayments ? o.payments.map((p) => ({ id: p.id, provider: p.provider, method: p.method, status: p.status, amountMinor: p.amountMinor, currency: p.currency, paidAt: p.paidAt, createdAt: p.createdAt })) : undefined,
     };
+  }
+
+  /** Sends the confirmation e-mail again (staff). A new message is queued, so the first stays on record. */
+  resendEmail(id: string, actor: AuthenticatedUser, ctx: RequestContext) {
+    return this.delivery.resend(id, actor, ctx);
+  }
+
+  /**
+   * Cancels ONE ticket for an operational reason (it stops working; the order and its payment are not touched, and
+   * nothing is refunded). Only a ticket that is waiting or valid can be cancelled; a used one cannot.
+   */
+  async cancelTicket(orderId: string, ref: string, reason: string, actor: AuthenticatedUser, ctx: RequestContext): Promise<{ ref: string; status: 'CANCELLED' }> {
+    const now = this.clock.now();
+    return this.prisma.$transaction(async (tx) => {
+      const ticket = await tx.ticket.findFirst({ where: { orderId, publicRef: ref }, include: { order: { select: { orderNumber: true } } } });
+      if (!ticket) throw new AppException('TICKET_NOT_FOUND', 'Ticket not found.', 404);
+      if (ticket.status === 'CANCELLED') throw new AppException('TICKET_ALREADY_CANCELLED', 'This ticket is already cancelled.', 409);
+      const moved = await tx.ticket.updateMany({ where: { id: ticket.id, status: { in: ['PENDING', 'VALID'] } }, data: { status: 'CANCELLED', cancelledAt: now, cancelReason: reason } });
+      if (moved.count === 0) throw new AppException('TICKET_NOT_CANCELLABLE', `A ${ticket.status.toLowerCase()} ticket cannot be cancelled.`, 409);
+      await this.audit.record(
+        { userId: actor.id, action: 'ticket.cancelled', entity: 'ticket', entityId: ticket.id, oldValue: { status: ticket.status }, newValue: { status: 'CANCELLED', reason, ref, orderNumber: ticket.order.orderNumber, note: 'operational cancellation, not a refund' } },
+        ctx,
+        tx,
+      );
+      return { ref, status: 'CANCELLED' as const };
+    });
   }
 
   /**

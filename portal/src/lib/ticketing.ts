@@ -62,6 +62,37 @@ export function reasonProblem(reason: string): string | null {
 /** An order can be cancelled while it is waiting for payment or paid, never after it is cancelled or expired. */
 export const canCancelOrder = (status: OrderStatus): boolean => status === 'PENDING_PAYMENT' || status === 'PAID'
 
+export type EmailStatus = 'PENDING' | 'SENT' | 'FAILED'
+
+export const EMAIL_STATUS_LABEL: Record<EmailStatus, string> = { PENDING: 'Waiting to send', SENT: 'Sent', FAILED: 'Failed' }
+export const EMAIL_STATUS_TONE: Record<EmailStatus, 'neutral' | 'teal' | 'amber' | 'red'> = { PENDING: 'amber', SENT: 'teal', FAILED: 'red' }
+
+export interface EmailRow {
+  id: string
+  template: string
+  recipient: string
+  status: EmailStatus
+  attempts: number
+  lastError: string | null
+  sentAt: string | null
+  createdAt: string
+  nextAttemptAt: string | null
+}
+
+/** A ticket can be cancelled while it is waiting or valid; a used or already cancelled ticket cannot. */
+export const canCancelTicket = (ticketStatus: string): boolean => ticketStatus === 'PENDING' || ticketStatus === 'VALID'
+
+/** Tickets are e-mailed only for a paid order. */
+export const canResendTickets = (orderStatus: OrderStatus): boolean => orderStatus === 'PAID'
+
+/** What to tell staff about one message: sent when, or why it failed and what happens next. */
+export function emailSummary(e: Pick<EmailRow, 'status' | 'attempts' | 'nextAttemptAt' | 'sentAt'>, formatMoment: (iso: string | null) => string, maxAttempts = 5): string {
+  if (e.status === 'SENT') return `Sent ${formatMoment(e.sentAt)}`
+  if (e.status === 'PENDING') return 'Waiting to be sent'
+  if (e.nextAttemptAt) return `Failed (attempt ${e.attempts} of ${maxAttempts}); next try ${formatMoment(e.nextAttemptAt)}`
+  return `Failed after ${e.attempts} attempt${e.attempts === 1 ? '' : 's'}; it will not be tried again. Use “Resend e-mail”.`
+}
+
 export interface OrderRow {
   id: string
   orderNumber: string
@@ -98,6 +129,7 @@ export interface OrderDetail {
   items: Array<{ id: string; typeNameEn: string; typeNameAr: string; audienceNameEn: string; audienceNameAr: string; unitPriceMinor: number; quantity: number; lineTotalMinor: number }>
   ticketCounts: Record<string, number>
   tickets?: Array<{ ref: string; status: string; typeNameEn: string; pricePaidMinor: number }>
+  emails?: EmailRow[]
   payments?: Array<{ id: string; provider: string; method: string; status: PaymentStatus; amountMinor: number; currency: string; paidAt: string | null; createdAt: string }>
 }
 

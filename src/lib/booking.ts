@@ -83,7 +83,9 @@ export interface PublicOrder {
   customer: { fullName: string; email: string | null } | null
   items: Array<{ typeNameEn: string; typeNameAr: string; audienceNameEn: string; audienceNameAr: string; unitPriceMinor: number; quantity: number; lineTotalMinor: number }>
   payment: { status: 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED'; provider: string; isMock: boolean; providerTxnId: string | null } | null
-  tickets: Array<{ ref: string; typeNameEn: string; typeNameAr: string; status: string }>
+  locale: 'en' | 'ar'
+  /** only for a paid order; `qr` is the code's image (a data: URL) while the ticket is valid */
+  tickets: Array<{ ref: string; typeNameEn: string; typeNameAr: string; audienceNameEn: string; audienceNameAr: string; status: 'PENDING' | 'VALID' | 'USED' | 'CANCELLED' | 'EXPIRED'; pricePaidMinor: number; qr: string | null }>
 }
 export interface PaymentInfo {
   status: string
@@ -137,6 +139,33 @@ export const fetchOrder = (orderNumber: string, token: string, signal?: AbortSig
   call<PublicOrder>('GET', `/public/orders/${encodeURIComponent(orderNumber)}`, { headers: { 'X-Order-Token': token }, signal })
 export const payAgain = (orderNumber: string, token: string) =>
   call<{ order: PublicOrder; payment: PaymentInfo }>('POST', `/public/orders/${encodeURIComponent(orderNumber)}/payments`, { body: {}, headers: { 'X-Order-Token': token } })
+/**
+ * Downloads the ticket PDF (all tickets, or one) and hands it to the browser as a file. The order's private key goes in a
+ * header, never in the address, so it cannot end up in logs, history or a shared link.
+ */
+export async function downloadTicketsPdf(orderNumber: string, token: string, options: { ref?: string; lang: 'en' | 'ar' }): Promise<void> {
+  if (!API_URL) throw new BookingError('UNAVAILABLE', 'Online booking is not configured.', 0)
+  const path = options.ref ? `/public/orders/${encodeURIComponent(orderNumber)}/tickets/${encodeURIComponent(options.ref)}/pdf` : `/public/orders/${encodeURIComponent(orderNumber)}/tickets/pdf`
+  let res: Response
+  try {
+    res = await fetch(`${API_URL}${path}?lang=${options.lang}`, { headers: { 'X-Order-Token': token } })
+  } catch {
+    throw new BookingError('NETWORK', 'The booking service cannot be reached.', 0)
+  }
+  if (!res.ok) {
+    const json = (await res.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null
+    throw new BookingError(json?.error?.code ?? 'ERROR', json?.error?.message ?? `Download failed (${res.status})`, res.status)
+  }
+  const url = URL.createObjectURL(await res.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = options.ref ? `${options.ref}.pdf` : `al-azhar-park-${orderNumber}.pdf`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
 /** DEVELOPMENT ONLY: the stand-in payment page. The server refuses it unless the mock provider is switched on. */
 export const completeMockPayment = (txnId: string, outcome: 'SUCCESS' | 'FAILURE') =>
   call<{ result: string; orderNumber: string }>('POST', `/public/payments/mock/${encodeURIComponent(txnId)}/complete`, { body: { outcome } })

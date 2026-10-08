@@ -444,6 +444,8 @@ model Order {
   promoCode      String?      @map("promo_code")
   /// client-supplied key so a retried request cannot create a second order
   idempotencyKey String?      @unique @map("idempotency_key")
+  /// the language the customer used ('en' or 'ar'): their e-mail and ticket PDF default to it
+  locale         String       @default("en")
   /// unpaid online orders expire (their tickets become EXPIRED)
   expiresAt      DateTime?    @map("expires_at") @db.Timestamptz(3)
   paidAt         DateTime?    @map("paid_at") @db.Timestamptz(3)
@@ -976,10 +978,15 @@ model Notification {
   lastError      String?             @map("last_error")
   sentAt         DateTime?           @map("sent_at") @db.Timestamptz(3)
   relatedOrderId String?             @map("related_order_id") @db.Uuid
+  /// one message per purpose: a second attempt to queue the same message is refused, so a repeated payment confirmation cannot send twice
+  dedupeKey      String?             @unique @map("dedupe_key")
+  /// failed messages are retried after this time (null = not waiting for a retry)
+  nextAttemptAt  DateTime?           @map("next_attempt_at") @db.Timestamptz(3)
   createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([status, createdAt])
+  @@index([relatedOrderId])
   @@map("notifications")
 }
 

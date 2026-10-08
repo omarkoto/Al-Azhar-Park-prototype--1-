@@ -4,7 +4,7 @@ import { api, errorMessage, type PageMeta } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { useLoad } from '../lib/hooks'
 import {
-  canCancelOrder, formatDay, formatMoment, money, ORDER_STATUS_LABEL, ORDER_STATUS_TONE, ORDER_STATUSES, PAYMENT_STATUS_LABEL, reasonProblem, type OrderDetail, type OrderRow, type OrderStatus,
+  canCancelOrder, canCancelTicket, canResendTickets, EMAIL_STATUS_LABEL, EMAIL_STATUS_TONE, emailSummary, formatDay, formatMoment, money, ORDER_STATUS_LABEL, ORDER_STATUS_TONE, ORDER_STATUSES, PAYMENT_STATUS_LABEL, reasonProblem, type OrderDetail, type OrderRow, type OrderStatus,
 } from '../lib/ticketing'
 
 /** Orders: search, filter, see every detail, and cancel for an operational reason (this is never a refund). */
@@ -143,6 +143,41 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [cancellingTicket, setCancellingTicket] = useState<string | null>(null)
+  const [ticketReason, setTicketReason] = useState('')
+  const [ticketReasonError, setTicketReasonError] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+
+  async function cancelTicket() {
+    const problem = reasonProblem(ticketReason)
+    setTicketReasonError(problem)
+    if (problem || !cancellingTicket) return
+    setBusy(true)
+    try {
+      await api.post(`/orders/${id}/tickets/${cancellingTicket}/cancel`, { reason: ticketReason.trim() })
+      toast('success', 'Ticket cancelled.')
+      setCancellingTicket(null)
+      setTicketReason('')
+      await reload()
+    } catch (e) {
+      toast('error', errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function resend() {
+    setSending(true)
+    try {
+      const r = await api.post<{ status: string }>(`/orders/${id}/resend-email`)
+      toast(r.status === 'SENT' ? 'success' : 'error', r.status === 'SENT' ? 'The ticket e-mail was sent.' : 'The e-mail could not be sent. See the status below; it will be tried again.')
+      await reload()
+    } catch (e) {
+      toast('error', errorMessage(e))
+    } finally {
+      setSending(false)
+    }
+  }
 
   async function cancel() {
     const problem = reasonProblem(reason)
@@ -238,17 +273,65 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
           )}
 
           {o.tickets && o.tickets.length > 0 && (
-            <details>
-              <summary className="cursor-pointer text-sm text-teal-800">{o.tickets.length} ticket{o.tickets.length === 1 ? '' : 's'}</summary>
-              <ul className="mt-2 divide-y divide-stone-100 text-sm">
+            <div>
+              <p className="mb-1 text-xs uppercase text-stone-500">Tickets</p>
+              <ul className="divide-y divide-stone-100 text-sm" data-testid="order-tickets">
                 {o.tickets.map((t) => (
-                  <li key={t.ref} className="flex justify-between gap-2 py-1">
+                  <li key={t.ref} className="flex flex-wrap items-center justify-between gap-2 py-1.5" data-testid="order-ticket">
                     <span className="font-mono text-xs">{t.ref}</span>
-                    <span>{t.typeNameEn} · {t.status.toLowerCase()}</span>
+                    <span className="flex items-center gap-2">
+                      {t.typeNameEn} · {money(t.pricePaidMinor, o.currency)}
+                      <Badge tone={t.status === 'VALID' ? 'teal' : t.status === 'PENDING' ? 'amber' : t.status === 'USED' ? 'neutral' : 'red'}>{t.status.toLowerCase()}</Badge>
+                      {can('tickets:cancel') && canCancelTicket(t.status) && (
+                        <Button variant="ghost" className="text-red-700" onClick={() => { setCancellingTicket(t.ref); setTicketReason(''); setTicketReasonError(null) }} aria-label={`Cancel ticket ${t.ref}`}>
+                          Cancel
+                        </Button>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
-            </details>
+              {cancellingTicket && (
+                <div className="mt-3 space-y-3 rounded-lg border border-red-200 bg-red-50 p-4" data-testid="cancel-ticket-panel">
+                  <p className="text-sm text-red-900">
+                    Cancel ticket <strong>{cancellingTicket}</strong>? It stops working. <strong>It is not a refund</strong>; the order and its payment stay as they are. Your name, the time and the reason are recorded.
+                  </p>
+                  <TextArea label="Reason (required)" value={ticketReason} onChange={(e) => setTicketReason(e.target.value)} error={ticketReasonError ?? undefined} maxLength={500} />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={() => setCancellingTicket(null)}>Keep the ticket</Button>
+                    <Button variant="danger" busy={busy} onClick={() => void cancelTicket()}>Confirm ticket cancellation</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {(o.emails || (can('tickets:resend') && canResendTickets(o.status))) && (
+            <div data-testid="order-emails">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <p className="text-xs uppercase text-stone-500">Ticket e-mail</p>
+                {can('tickets:resend') && canResendTickets(o.status) && (
+                  <Button variant="secondary" busy={sending} onClick={() => void resend()}>
+                    Resend e-mail
+                  </Button>
+                )}
+              </div>
+              {o.emails && o.emails.length === 0 && <p className="text-sm text-stone-500">No e-mail has been sent for this order.</p>}
+              {o.emails && o.emails.length > 0 && (
+                <ul className="divide-y divide-stone-100 text-sm">
+                  {o.emails.map((e) => (
+                    <li key={e.id} className="space-y-0.5 py-1.5" data-testid="email-row">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span>{e.recipient}</span>
+                        <Badge tone={EMAIL_STATUS_TONE[e.status]}>{EMAIL_STATUS_LABEL[e.status]}</Badge>
+                      </div>
+                      <p className="text-xs text-stone-500">{emailSummary(e, formatMoment)}</p>
+                      {e.lastError && e.status === 'FAILED' && <p className="text-xs text-red-800">{e.lastError}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
           {o.status === 'CANCELLED' && (

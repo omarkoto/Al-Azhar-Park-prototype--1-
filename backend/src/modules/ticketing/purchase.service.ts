@@ -268,7 +268,7 @@ export class PurchaseService {
       data: {
         orderNumber, customerId: customer.id, channel: 'ONLINE', status: 'PENDING_PAYMENT', visitDate: new Date(`${dto.visitDate}T00:00:00Z`),
         subtotalMinor: selection.totalMinor, discountMinor: 0, totalMinor: selection.totalMinor, currency: selection.currency,
-        idempotencyKey: idempotencyKey ?? null, expiresAt: new Date(now.getTime() + cfg.pendingExpiryMinutes * 60_000),
+        idempotencyKey: idempotencyKey ?? null, locale: dto.locale, expiresAt: new Date(now.getTime() + cfg.pendingExpiryMinutes * 60_000),
       },
     });
 

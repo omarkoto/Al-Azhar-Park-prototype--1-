@@ -52,6 +52,8 @@ export class CreateOrderDto extends createZodDto(createOrderSchema) {}
 
 export class CatalogQueryDto extends createZodDto(z.object({ date: isoDate.optional() })) {}
 
+export class TicketPdfQueryDto extends createZodDto(z.object({ lang: z.enum(['en', 'ar']).optional() })) {}
+
 export class MockCompleteDto extends createZodDto(
   z
     .object({

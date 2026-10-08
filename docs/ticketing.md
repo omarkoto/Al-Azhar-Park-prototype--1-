@@ -1,6 +1,6 @@
 # Ticketing — design decisions
 
-Phase 1 delivered the data model and its guarantees. Online purchase, pricing and orders are implemented in Phase 6 (see [Online purchase](#online-purchase-phase-6)); tickets with QR codes/PDF and e-mail are Phase 7, scanning is Phase 8.
+Phase 1 delivered the data model and its guarantees. Online purchase, pricing and orders are implemented in Phase 6 (see [Online purchase](#online-purchase-phase-6)); tickets, QR codes, PDF and e-mail are Phase 7 (see [tickets.md](tickets.md)); scanning is Phase 8.
 
 ## Channels and payment
 
@@ -107,7 +107,7 @@ Audit actions: `order.created`, `order.expired`, `order.cancelled`, `payment.con
 ### Known limits
 
 - A payment that a real provider takes **after** the order expired cannot be applied automatically (the lifecycle forbids it); it needs manual reconciliation in the provider's dashboard. The mock provider cannot hit this.
-- The customer's access key is the only way back to an order until e-mail delivery exists (Phase 7); losing the page and the browser data loses the way in.
+- The customer's access key is the only way back to an order; Phase 7 also e-mails a fresh link (see [tickets.md](tickets.md)).
 - No discount or promo-code input yet (the price model supports special-date and promotional rows, the purchase does not offer them).
 - Rate limits are per address; behind a proxy `TRUST_PROXY` must be set so the real address is seen.
 

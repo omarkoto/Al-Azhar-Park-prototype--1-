@@ -1,3 +1,4 @@
+import * as fs from 'node:fs'
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { API, SITE, USERS, nav, openSection, signedInPage } from './helpers'
 
@@ -228,6 +229,43 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await expect(page.getByText('Your cart is empty')).toBeVisible()
   })
 
+  test('the paid order page shows every ticket with its QR code, and the ticket PDF downloads', async () => {
+    const page = customer!
+    await page.goto(`${SITE}/orders/${firstOrder}`) // the key is kept in this browser
+    await expect(page.getByTestId('order-ticket')).toHaveCount(3)
+    await expect(page.getByTestId('ticket-status')).toHaveText(['Valid', 'Valid', 'Valid'])
+    await expect(page.getByTestId('ticket-qr')).toHaveCount(3)
+    // each code is a real image, different for every ticket
+    const sources = await page.getByTestId('ticket-qr').evaluateAll((imgs) => (imgs as HTMLImageElement[]).map((i) => ({ src: i.src.slice(0, 40), data: i.src.length, w: i.naturalWidth })))
+    for (const s of sources) {
+      expect(s.src).toMatch(/^data:image\/png;base64,/)
+      expect(s.w).toBeGreaterThan(100)
+    }
+    const refs = await page.getByTestId('ticket-ref').allTextContents()
+    expect(new Set(refs).size).toBe(3)
+    for (const ref of refs) expect(ref).toMatch(/^TKT-[0-9A-Z]{10}$/)
+
+    // all tickets as one PDF
+    const [all] = await Promise.all([page.waitForEvent('download'), page.getByTestId('download-all').click()])
+    expect(all.suggestedFilename()).toBe(`al-azhar-park-${firstOrder}.pdf`)
+    const allBytes = fs.readFileSync((await all.path())!)
+    expect(allBytes.subarray(0, 5).toString()).toBe('%PDF-')
+    expect((allBytes.toString('latin1').match(/\/Type \/Page\b(?!s)/g) ?? []).length).toBe(3)
+    expect(allBytes.toString('latin1')).toContain('/Subtype /Image')
+
+    // one ticket
+    const [one] = await Promise.all([page.waitForEvent('download'), page.getByTestId('download-ticket').first().click()])
+    expect(one.suggestedFilename()).toBe(`${refs[0]}.pdf`)
+    const oneBytes = fs.readFileSync((await one.path())!)
+    expect((oneBytes.toString('latin1').match(/\/Type \/Page\b(?!s)/g) ?? []).length).toBe(1)
+
+    // the private key travels in a header: it is not in the address of the download, and without it nothing downloads
+    const noKey = await page.request.get(`${API}/public/orders/${firstOrder}/tickets/pdf`)
+    expect(noKey.status()).toBe(404)
+    const wrongKey = await page.request.get(`${API}/public/orders/${firstOrder}/tickets/${refs[0]}/pdf`, { headers: { 'X-Order-Token': 'z'.repeat(43) } })
+    expect(wrongKey.status()).toBe(404)
+  })
+
   test('opening the order page without its private key shows nothing about the order', async ({ browser }) => {
     const page = await freshPage(browser, `/orders/${firstOrder}`)
     await expect(page.getByTestId('order-not-found')).toBeVisible()
@@ -278,6 +316,62 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await page.context().close()
   })
 
+  test('the confirmation e-mail was queued and sent once; staff can resend it, and admins can see its status', async ({ browser }) => {
+    const ops = await signedInPage(browser, USERS.operations)
+    await openSection(ops.page, 'Orders')
+    await ops.page.getByLabel('Search').fill(firstOrder)
+    await ops.page.getByRole('button', { name: `Open order ${firstOrder}` }).click()
+    const detail = ops.page.getByTestId('order-detail')
+    await expect(detail.getByTestId('order-ticket')).toHaveCount(3)
+    await expect(detail.getByTestId('order-ticket').first()).toContainText('valid')
+    await expect(detail).toContainText('Ticket e-mail')
+    // operations may resend but is not shown the delivery log (that needs the notifications permission)
+    await expect(detail.getByTestId('email-row')).toHaveCount(0)
+    await detail.getByRole('button', { name: 'Resend e-mail' }).click()
+    await expect(ops.page.getByText('The ticket e-mail was sent.').first()).toBeVisible()
+    await ops.context.close()
+
+    // the administrator sees both messages, each sent, and nothing private
+    await openSection(admin, 'Orders')
+    await admin.getByLabel('Search').fill(firstOrder)
+    await admin.getByRole('button', { name: `Open order ${firstOrder}` }).click()
+    const adminDetail = admin.getByTestId('order-detail')
+    await expect(adminDetail.getByTestId('email-row')).toHaveCount(2)
+    for (const row of await adminDetail.getByTestId('email-row').all()) {
+      await expect(row).toContainText('mona@example.com')
+      await expect(row).toContainText('Sent')
+    }
+    await expect(adminDetail).not.toContainText('#k=')
+    await admin.getByRole('button', { name: 'Close' }).click()
+  })
+
+  test('a single ticket can be cancelled by staff with a reason; the customer\'s page stops showing its code', async ({ browser }) => {
+    const ops = await signedInPage(browser, USERS.operations)
+    await openSection(ops.page, 'Orders')
+    await ops.page.getByLabel('Search').fill(firstOrder)
+    await ops.page.getByRole('button', { name: `Open order ${firstOrder}` }).click()
+    const detail = ops.page.getByTestId('order-detail')
+    const target = (await detail.getByTestId('order-ticket').first().locator('span.font-mono').textContent())!.trim()
+    await detail.getByRole('button', { name: `Cancel ticket ${target}` }).click()
+    await expect(ops.page.getByText('It is not a refund').first()).toBeVisible()
+    await detail.getByRole('button', { name: 'Confirm ticket cancellation' }).click()
+    await expect(ops.page.getByText('Say why the order is being cancelled.')).toBeVisible()
+    await detail.getByLabel('Reason (required)').fill('Bought twice by mistake')
+    await detail.getByRole('button', { name: 'Confirm ticket cancellation' }).click()
+    await expect(ops.page.getByText('Ticket cancelled.').first()).toBeVisible()
+    await expect(detail.getByTestId('order-ticket').first()).toContainText('cancelled')
+    await expect(detail.getByRole('button', { name: `Cancel ticket ${target}` })).toHaveCount(0)
+    await ops.context.close()
+
+    await customer!.reload()
+    await expect(customer!.getByTestId('ticket-status').first()).toHaveText('Cancelled')
+    await expect(customer!.getByTestId('ticket-qr')).toHaveCount(2)
+    await expect(customer!.getByTestId('ticket-no-qr')).toHaveCount(1)
+    await expect(customer!.getByTestId('download-ticket')).toHaveCount(2)
+    const gone = await customer!.request.get(`${API}/public/orders/${firstOrder}/tickets/${target}/pdf`, { headers: { 'X-Order-Token': (await customer!.evaluate((n) => localStorage.getItem(`azharpark-order-${n}`), firstOrder))! } })
+    expect(gone.status()).toBe(404)
+  })
+
   test('staff see the order in the portal with the right details, and cancelling needs a reason (it is not a refund)', async ({ browser }) => {
     const { page, context } = await signedInPage(browser, USERS.operations)
     await openSection(page, 'Orders')
@@ -320,6 +414,8 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await customer!.goto(`${SITE}/orders/${firstOrder}`)
     await expect(customer!.getByTestId('order-status')).toHaveText('This order was cancelled')
     await expect(customer!.getByText('The park cancelled this order')).toBeVisible()
+    await expect(customer!.getByTestId('order-ticket')).toHaveCount(0) // no usable ticket for a cancelled order
+    await expect(customer!.getByTestId('ticket-qr')).toHaveCount(0)
     const stranger = await freshPage(browser, `/orders/${firstOrder}`)
     await expect(stranger.getByTestId('order-not-found')).toBeVisible()
     await stranger.context().close()
@@ -472,6 +568,42 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await page.getByRole('button', { name: 'إتمام الطلب والدفع' }).click()
     await expect(page.getByText('يُرجى إدخال اسمك الكامل.')).toBeVisible()
     await page.context().close()
+  })
+
+  test('Arabic customers get an Arabic order page, Arabic ticket cards and an Arabic PDF', async ({ browser }) => {
+    const context = await browser.newContext()
+    await context.addInitScript(() => window.localStorage.setItem('azharpark-lang', 'ar'))
+    const page = await context.newPage()
+    await page.goto(`${SITE}/tickets`)
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+    await expect(page.getByTestId('ticket-row').first()).toBeVisible()
+    await page.getByLabel('تاريخ الزيارة').fill(THURSDAY)
+    await expect(page.getByTestId('ticket-total')).toContainText('جنيه')
+    await page.getByRole('button', { name: 'أضف إلى السلة' }).click()
+    await page.goto(`${SITE}/checkout`)
+    await expect(page.getByTestId('quote-line').first()).toBeVisible()
+    await page.locator('input[name=fullName]').fill('منى حسن')
+    await page.locator('input[name=email]').fill('mona.ar@example.com')
+    await page.locator('input[name=phone]').fill('٠١٠٠١٢٣٤٥٦٧٨')
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'إتمام الطلب والدفع' }).click()
+    await expect(page.getByTestId('order-status')).toHaveText('في انتظار الدفع')
+    await page.getByTestId('mock-pay').click()
+    await expect(page.getByTestId('order-status')).toHaveText(/تم استلام الدفع/)
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+    await expect(page.getByTestId('order-ticket')).toHaveCount(2)
+    await expect(page.getByTestId('ticket-status').first()).toHaveText('صالحة')
+    await expect(page.getByTestId('ticket-qr')).toHaveCount(2)
+    await expect(page.getByTestId('order-total')).toContainText('جنيه')
+    await expect(page.getByText(/كل تذكرة صالحة يوم .* فقط/)).toBeVisible()
+    await expect(page.getByTestId('download-all')).toHaveText('تنزيل كل التذاكر (PDF)')
+
+    const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByTestId('download-all').click()])
+    const bytes = fs.readFileSync((await pdf.path())!)
+    expect(bytes.subarray(0, 5).toString()).toBe('%PDF-')
+    expect(bytes.toString('latin1')).toMatch(/Cairo/) // the Arabic font is embedded
+    expect((bytes.toString('latin1').match(/\/Type \/Page\b(?!s)/g) ?? []).length).toBe(2)
+    await context.close()
   })
 
   test('when the booking service cannot be reached the site says so, and shows no pretend confirmation', async ({ browser }) => {

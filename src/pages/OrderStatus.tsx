@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMoney } from '../lib/alt'
 import {
-  BookingError, completeMockPayment, fetchOrder, formatCountdown, loadOrderToken, payAgain, pounds, problemKey, saveOrderToken, secondsLeft, tokenFromHash, type PublicOrder,
+  BookingError, completeMockPayment, downloadTicketsPdf, fetchOrder, formatCountdown, loadOrderToken, payAgain, pounds, problemKey, saveOrderToken, secondsLeft, tokenFromHash, type PublicOrder,
 } from '../lib/booking'
 import { useBookingFormat } from '../lib/bookingFormat'
 import { cairoIso } from '../lib/calendar'
@@ -33,6 +33,7 @@ export function OrderStatus() {
   const [problem, setProblem] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   // keep the private key in this browser, so the page still opens without the "#k=…" part of the address
   useEffect(() => {
@@ -88,6 +89,19 @@ export function OrderStatus() {
       await load()
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function download(ref?: string) {
+    if (!token || !order) return
+    setDownloading(ref ?? 'all')
+    setProblem(null)
+    try {
+      await downloadTicketsPdf(orderNumber, token, { ref, lang: f.lang })
+    } catch (e) {
+      setProblem(e instanceof BookingError && e.status === 409 ? 'bookErrGeneric' : problemKey(e instanceof BookingError ? e.code : 'NETWORK'))
+    } finally {
+      setDownloading(null)
     }
   }
 
@@ -215,16 +229,49 @@ export function OrderStatus() {
           <div className="mt-8 space-y-6">
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{t('orderTickets')}</h2>
-              <ul className="mt-3 grid gap-3 sm:grid-cols-2" data-testid="order-tickets">
-                {order.tickets.map((tk) => (
-                  <li key={tk.ref} className="rounded-xl border border-ink-900/10 bg-sand-50 px-4 py-3" data-testid="order-ticket">
-                    <p className="text-sm font-medium text-ink-900">{f.name({ nameEn: tk.typeNameEn, nameAr: tk.typeNameAr })}</p>
-                    <p className="mt-0.5 font-mono text-xs text-ink-900/60" dir="ltr">
-                      {tk.ref}
-                    </p>
+              {problem ? <p role="alert" className="mt-3 rounded-xl border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">{t(problem)}</p> : null}
+              <ul className="mt-3 grid gap-4 sm:grid-cols-2" data-testid="order-tickets">
+                {order.tickets.map((tk, n) => (
+                  <li key={tk.ref} className="overflow-hidden rounded-2xl border border-ink-900/10 bg-sand-50" data-testid="order-ticket">
+                    <div className="flex items-start justify-between gap-3 border-b border-dashed border-ink-900/15 bg-teal-50/50 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-ink-900">{f.name({ nameEn: tk.typeNameEn, nameAr: tk.typeNameAr })}</p>
+                        <p className="text-xs text-ink-900/55">{f.name({ nameEn: tk.audienceNameEn, nameAr: tk.audienceNameAr })} · <span dir="ltr">{money(pounds(tk.pricePaidMinor))}</span></p>
+                      </div>
+                      <span
+                        data-testid="ticket-status"
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${tk.status === 'VALID' ? 'bg-teal-700 text-sand-50' : 'bg-red-100 text-red-800'}`}
+                      >
+                        {t(`ticketStatus_${tk.status}`)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-3 px-4 py-5">
+                      {tk.qr ? (
+                        <>
+                          <img src={tk.qr} alt={t('orderQrAlt', { ref: tk.ref })} width={180} height={180} className="h-44 w-44 rounded-lg border border-ink-900/10 bg-white p-1" data-testid="ticket-qr" />
+                          <p className="text-center text-xs text-ink-900/60">{t('orderShowQr')}</p>
+                        </>
+                      ) : (
+                        <p className="py-8 text-center text-sm text-ink-900/50" data-testid="ticket-no-qr">{t('orderNoQr')}</p>
+                      )}
+                      <p className="font-mono text-xs text-ink-900/70" dir="ltr" data-testid="ticket-ref">
+                        {tk.ref}
+                      </p>
+                      <p className="text-[11px] text-ink-900/45">{f.digits(n + 1)} / {f.digits(order.tickets.length)}</p>
+                      {tk.status === 'VALID' ? (
+                        <Button variant="ghost" className="w-full justify-center border-ink-900/20 text-ink-900" disabled={downloading !== null} onClick={() => void download(tk.ref)} data-testid="download-ticket">
+                          {downloading === tk.ref ? t('orderDownloading') : t('orderDownloadOne')}
+                        </Button>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>
+              {order.tickets.some((tk) => tk.status === 'VALID') ? (
+                <Button className="mt-5 w-full justify-center sm:w-auto" disabled={downloading !== null} onClick={() => void download()} data-testid="download-all">
+                  {downloading === 'all' ? t('orderDownloading') : t('orderDownloadAll')}
+                </Button>
+              ) : null}
               <p className="mt-3 text-xs leading-relaxed text-ink-900/60">{t('orderTicketsValid', { date: dayText })}</p>
             </div>
             <div className="rounded-2xl border border-ink-900/10 bg-sand-100 p-6">

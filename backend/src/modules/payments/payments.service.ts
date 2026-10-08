@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Payment, Prisma } from '@prisma/client';
 import { Clock } from '../../common/clock';
+import { AppConfigService } from '../../config/app-config.service';
 import { AppException } from '../../common/errors/app-exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService, RequestContext } from '../audit/audit.service';
 import { OrderLifecycleService } from '../ticketing/order-lifecycle.service';
+import { TicketDeliveryService } from '../ticketing/ticket-delivery.service';
 import { PaymentProvider } from './payment-provider';
 
 export interface PaymentView {
@@ -58,6 +60,8 @@ export class PaymentsService {
     private readonly audit: AuditService,
     private readonly lifecycle: OrderLifecycleService,
     private readonly clock: Clock,
+    private readonly config: AppConfigService,
+    private readonly delivery: TicketDeliveryService,
   ) {}
 
   get providerCode(): string {
@@ -150,7 +154,7 @@ export class PaymentsService {
         if (paid.count === 0) throw new Concurrent();
         const moved = await tx.order.updateMany({ where: { id: order.id, status: 'PENDING_PAYMENT', expiresAt: { gt: now } }, data: { status: 'PAID', paidAt: now } });
         if (moved.count === 0) throw new NotPayable();
-        await tx.ticket.updateMany({ where: { orderId: order.id, status: 'PENDING' }, data: { status: 'VALID', issuedAt: now } });
+        await tx.ticket.updateMany({ where: { orderId: order.id, status: 'PENDING' }, data: { status: 'VALID', issuedAt: now, qrKeyId: this.config.qrActiveKeyId } });
         await this.audit.record({ action: 'payment.confirmed', entity: 'payment', entityId: payment.id, newValue: { orderNumber: order.orderNumber, amountMinor: payment.amountMinor } }, ctx, tx);
       });
     } catch (error) {
@@ -163,6 +167,8 @@ export class PaymentsService {
       if (error instanceof NotPayable) return reject('ORDER_NOT_PAYABLE', 'This order can no longer be paid.');
       throw error;
     }
+    // The payment stands whatever happens next: sending the e-mail is queued, and a failure there is only recorded.
+    await this.delivery.queueConfirmation(order.id);
     return { result: 'PAID', orderNumber: order.orderNumber };
   }
 }

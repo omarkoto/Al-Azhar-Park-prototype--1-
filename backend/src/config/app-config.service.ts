@@ -31,6 +31,29 @@ export class AppConfigService {
     return this.env.PAYMENT_PROVIDER ?? (this.isProduction ? 'none' : 'mock');
   }
 
+  /** Which key signs new ticket QR codes, and every key that may still be presented (for verifying). */
+  get qrKeyRing(): Readonly<Record<number, string>> {
+    if (this.env.TICKET_QR_KEYS) {
+      const parsed = JSON.parse(this.env.TICKET_QR_KEYS) as Record<string, string>;
+      return Object.fromEntries(Object.entries(parsed).map(([id, secret]) => [Number(id), secret]));
+    }
+    return { 1: this.env.TICKET_TOKEN_PEPPER || 'dev-only-ticket-pepper-do-not-deploy-0123456789abcdef' };
+  }
+
+  get qrActiveKeyId(): number {
+    return this.env.TICKET_QR_ACTIVE_KEY_ID;
+  }
+
+  /** The e-mail provider in use: the configured one, else 'log' outside production and 'none' in production. */
+  get emailProvider(): 'none' | 'log' | 'smtp' {
+    return this.env.EMAIL_PROVIDER ?? (this.isProduction ? 'none' : 'log');
+  }
+
+  /** The website address used in e-mail links. */
+  get publicSiteUrl(): string {
+    return (this.env.PUBLIC_SITE_URL ?? 'http://localhost:5173').replace(/\/+$/, '');
+  }
+
   get isProduction(): boolean {
     return this.env.NODE_ENV === 'production';
   }
