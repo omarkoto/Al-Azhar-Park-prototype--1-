@@ -26,15 +26,20 @@ export interface DayHours {
   source: 'WEEKLY' | 'SPECIAL' | 'NONE';
 }
 
+/** The special-hours row that applies on a date: the highest priority wins, a later start date breaks a tie. */
+export function coveringSpecial<T extends SpecialHours>(date: string, special: readonly T[]): T | undefined {
+  return special
+    .filter((s) => s.isActive && s.dateFrom <= date && date <= s.dateTo)
+    .sort((a, b) => b.priority - a.priority || (a.dateFrom < b.dateFrom ? 1 : a.dateFrom > b.dateFrom ? -1 : 0))[0];
+}
+
 /**
  * The hours that apply on a date: the highest-priority active special-hours row covering the date wins
  * (a later start date breaks ties); otherwise the weekday's regular hours. No row at all means closed —
  * the safe default, so a missing configuration can never sell tickets for a day nobody planned to open.
  */
 export function resolveHours(date: string, weekly: readonly WeeklyHours[], special: readonly SpecialHours[]): DayHours {
-  const covering = special
-    .filter((s) => s.isActive && s.dateFrom <= date && date <= s.dateTo)
-    .sort((a, b) => b.priority - a.priority || (a.dateFrom < b.dateFrom ? 1 : a.dateFrom > b.dateFrom ? -1 : 0))[0];
+  const covering = coveringSpecial(date, special);
 
   const row = covering ?? weekly.find((w) => w.dayOfWeek === dayOfWeekOf(date));
   const source: DayHours['source'] = covering ? 'SPECIAL' : row ? 'WEEKLY' : 'NONE';

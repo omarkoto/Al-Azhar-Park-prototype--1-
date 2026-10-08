@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { Layout, RequirePermission } from './components/Layout'
+import { Layout, RequireAnyPermission, RequirePermission } from './components/Layout'
 import { ContactPage } from './pages/Contact'
 import { HoursPage } from './pages/Hours'
 import { Home } from './pages/Home'
@@ -10,7 +10,10 @@ import { UsersPage } from './pages/Users'
 import { MediaPage } from './pages/Media'
 import { EventEditor, EventsPage } from './pages/Events'
 import { OrdersPage } from './pages/Orders'
+import { GatesPage } from './pages/Gates'
 import { ScannerPage } from './pages/Scanner'
+import { ScansPage } from './pages/Scans'
+import { TicketsPage } from './pages/Tickets'
 import { PricesPage } from './pages/Prices'
 import { TicketTypesPage } from './pages/TicketTypes'
 import { VenuesPage } from './pages/Venues'
@@ -33,6 +36,9 @@ export default function App() {
         <Route path="orders" element={<RequirePermission permission="orders:read"><OrdersPage /></RequirePermission>} />
         <Route path="ticket-types" element={<RequirePermission permission="ticket-types:read"><TicketTypesPage /></RequirePermission>} />
         <Route path="prices" element={<RequirePermission permission="pricing:read"><PricesPage /></RequirePermission>} />
+        <Route path="tickets" element={<RequirePermission permission="tickets:read"><TicketsPage /></RequirePermission>} />
+        <Route path="scans" element={<RequireAnyPermission permissions={['scans:read', 'scans:read_own']}><ScansPage /></RequireAnyPermission>} />
+        <Route path="gates" element={<RequirePermission permission="gates:read"><GatesPage /></RequirePermission>} />
         <Route path="scanner" element={<RequirePermission permission="scans:create"><ScannerPage /></RequirePermission>} />
         <Route path="media" element={<RequirePermission permission="media:read"><MediaPage /></RequirePermission>} />
         <Route path="users" element={<RequirePermission permission="users:read"><UsersPage /></RequirePermission>} />

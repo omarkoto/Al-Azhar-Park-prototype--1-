@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card, Modal, Notice, PageHeader, Select, Spinner, TextArea, TextInput, useToast } from '../components/ui'
 import { api, errorMessage, type PageMeta } from '../lib/api'
 import { useAuth } from '../lib/auth'
@@ -11,8 +12,10 @@ import {
 export function OrdersPage() {
   const [status, setStatus] = useState<'' | OrderStatus>('')
   const [visitDate, setVisitDate] = useState('')
-  const [search, setSearch] = useState('')
-  const [debounced, setDebounced] = useState('')
+  // a link from a ticket or the dashboard can open this list already searched
+  const [params] = useSearchParams()
+  const [search, setSearch] = useState(() => params.get('search') ?? '')
+  const [debounced, setDebounced] = useState(() => params.get('search') ?? '')
   const [page, setPage] = useState(1)
   const [rows, setRows] = useState<OrderRow[] | null>(null)
   const [meta, setMeta] = useState<PageMeta | null>(null)

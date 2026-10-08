@@ -98,6 +98,20 @@ export class ApiClient {
     return (await this.send<T>('DELETE', path)).data as T
   }
 
+  /** Downloads a file (a PDF) the person is allowed to get. Same sign-in, same single retry after a refresh as every other call. */
+  async download(path: string, retried = false): Promise<Blob> {
+    const res = await this.doFetch(`${this.baseUrl}${path}`, { credentials: 'include', headers: this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {} })
+    if (res.status === 401 && !retried) {
+      if (await this.refresh()) return this.download(path, true)
+      this.onSessionLost()
+    }
+    if (!res.ok) {
+      const json = (await res.json().catch(() => ({}))) as { error?: { code: string; message: string } }
+      throw new ApiError(res.status, json.error?.code ?? 'ERROR', json.error?.message ?? `Download failed (${res.status})`)
+    }
+    return res.blob()
+  }
+
   /** Exchanges the refresh cookie for a new access token. Safe to call from several places at once. */
   refresh(): Promise<boolean> {
     this.refreshing ??= this.doRefresh().finally(() => {

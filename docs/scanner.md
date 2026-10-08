@@ -96,7 +96,7 @@ Visible to anyone with `scans:create` (ticket staff, operations, administrators)
 
 ## What is deliberately not in Phase 8
 
-Scan history and statistics screens, entry analytics, staff-to-gate assignment, offline scanning, undoing an entry, manual override of a refusal, scanning for events or restaurants. (Future ideas, not built: a "recent scans" list on the scanner screen, per-gate counters, an optional "un-scan" with a reason and an audit entry, hardware-scanner debounce settings.)
+Entry analytics and statistics, staff-to-gate assignment (the scan list and gate management were added in Phase 9: see [portal.md](portal.md)), offline scanning, undoing an entry, manual override of a refusal, scanning for events or restaurants. (Future ideas, not built: a "recent scans" list on the scanner screen, per-gate counters, an optional "un-scan" with a reason and an audit entry, hardware-scanner debounce settings.)
 
 ## Known limits
 

@@ -4,6 +4,7 @@ import { expect, test, type APIRequestContext, type Browser, type BrowserContext
 // the SAME code the server signs and checks with: the test builds a ticket's QR text with it, there is no second scheme
 import { createQrPayload } from '../../backend/src/common/security/ticket-qr'
 import { API, PORTAL, SITE, USERS, nav, signedInPage } from './helpers'
+import { keepOpenToday } from './ticket-helpers'
 
 function backendSecret(): string {
   const file = join(__dirname, '..', '..', 'backend', '.env')
@@ -46,7 +47,7 @@ interface Bought {
 let TODAY = ''
 let admin: Page
 let closeAdmin: () => Promise<void>
-let specialHoursId: string | null = null
+let cleanup: () => Promise<void> = async () => undefined
 
 /** Buys one paid ticket through the public API (the flow customers use) and returns its references and QR text. */
 async function buy(request: APIRequestContext, visitDate: string): Promise<Bought> {
@@ -126,15 +127,10 @@ test.describe.serial('gate scanner', () => {
     closeAdmin = () => s.context.close()
     TODAY = (await (await admin.request.get(`${API}/public/tickets/catalog`)).json()).data.today
     // tickets for today can be bought until an hour before closing: late in the evening, keep the park open later today
-    const cairoHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Cairo', hour: '2-digit', hourCycle: 'h23' }).format(new Date()))
-    if (cairoHour >= 19) {
-      const made = await apiAs(admin, 'POST', '/special-hours', { kind: 'SPECIAL_HOURS', dateFrom: TODAY, dateTo: TODAY, isClosed: false, opens: '00:00', closes: '23:59', labelEn: 'Scanner test hours', labelAr: 'ساعات اختبار', priority: 50 })
-      expect(made.status).toBe(201)
-      specialHoursId = made.data.id
-    }
+    cleanup = await keepOpenToday(admin, TODAY)
   })
   test.afterAll(async () => {
-    if (specialHoursId) await apiAs(admin, 'DELETE', `/special-hours/${specialHoursId}`)
+    await cleanup()
     await closeAdmin()
   })
 
@@ -248,7 +244,7 @@ test.describe.serial('gate scanner', () => {
     await expect(result(page)).toHaveAttribute('data-result', 'ALREADY_USED', { timeout: 15_000 })
 
     // leaving the scanner lets go of the camera
-    await nav(page).getByRole('link', { name: 'Home', exact: true }).click()
+    await nav(page).getByRole('link', { name: 'Dashboard', exact: true }).click()
     await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
     const states = await page.evaluate(() => (window as unknown as { __cameraTracks: MediaStreamTrack[] }).__cameraTracks.map((t) => t.readyState))
     expect(states.length).toBeGreaterThan(0)

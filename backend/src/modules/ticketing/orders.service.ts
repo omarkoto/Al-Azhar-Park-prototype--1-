@@ -108,7 +108,7 @@ export class OrdersService {
     if (query.search) {
       const s = query.search;
       // customer details are searchable only by someone allowed to see them
-      where.OR = [{ orderNumber: { contains: s, mode: 'insensitive' } }, ...(seeCustomer ? [{ customer: { OR: [{ fullName: { contains: s, mode: 'insensitive' as const } }, { email: { contains: s, mode: 'insensitive' as const } }, { phone: { contains: s } }] } }] : [])];
+      where.OR = [{ orderNumber: { contains: s, mode: 'insensitive' } }, { tickets: { some: { publicRef: { contains: s.toUpperCase() } } } }, ...(seeCustomer ? [{ customer: { OR: [{ fullName: { contains: s, mode: 'insensitive' as const } }, { email: { contains: s, mode: 'insensitive' as const } }, { phone: { contains: s } }] } }] : [])];
     }
     const [total, rows] = await Promise.all([
       this.prisma.order.count({ where }),

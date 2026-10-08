@@ -1,23 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { visibleNav } from '../lib/navigation'
 import { Spinner } from './ui'
-
-const NAV: Array<{ to: string; label: string; permission: string }> = [
-  { to: '/park', label: 'Park information', permission: 'park:read' },
-  { to: '/contact', label: 'Contact details', permission: 'contact:read' },
-  { to: '/hours', label: 'Opening hours', permission: 'hours:read' },
-  { to: '/restaurants', label: 'Restaurants', permission: 'restaurants:read' },
-  { to: '/events', label: 'Events', permission: 'events:read' },
-  { to: '/venues', label: 'Venues', permission: 'venues:read' },
-  { to: '/scanner', label: 'Gate scanner', permission: 'scans:create' },
-  { to: '/orders', label: 'Orders', permission: 'orders:read' },
-  { to: '/ticket-types', label: 'Ticket types', permission: 'ticket-types:read' },
-  { to: '/prices', label: 'Ticket prices', permission: 'pricing:read' },
-  { to: '/media', label: 'Media library', permission: 'media:read' },
-  { to: '/users', label: 'Staff accounts', permission: 'users:read' },
-  { to: '/roles', label: 'Roles & permissions', permission: 'roles:read' },
-]
 
 /** Everything inside requires a signed-in user; the menu shows only what that user's permissions allow. */
 export function Layout() {
@@ -27,7 +12,7 @@ export function Layout() {
   if (status === 'loading') return <Spinner label="Checking your session…" />
   if (status === 'anonymous' || !profile) return <Navigate to="/login" replace />
 
-  const items = NAV.filter((n) => can(n.permission))
+  const groups = visibleNav(can)
   return (
     <div className="min-h-screen bg-stone-50 md:flex">
       <header className="flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3 md:hidden">
@@ -42,14 +27,21 @@ export function Layout() {
           <p className="text-lg font-semibold text-teal-900">Al-Azhar Park</p>
           <p className="text-xs tracking-wide text-stone-500 uppercase">Staff portal</p>
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-2" aria-label="Main">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Main">
           <NavLink to="/" end onClick={() => setOpen(false)} className={linkClass}>
-            Home
+            Dashboard
           </NavLink>
-          {items.map((n) => (
-            <NavLink key={n.to} to={n.to} onClick={() => setOpen(false)} className={linkClass}>
-              {n.label}
-            </NavLink>
+          {groups.map((g) => (
+            <div key={g.title} className="pt-3" role="group" aria-label={g.title}>
+              <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-stone-400 uppercase">{g.title}</p>
+              <div className="space-y-1">
+                {g.items.map((n) => (
+                  <NavLink key={n.to} to={n.to} onClick={() => setOpen(false)} className={linkClass}>
+                    {n.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="border-t border-stone-200 px-5 py-4 text-sm">
@@ -62,7 +54,7 @@ export function Layout() {
       </aside>
 
       <main className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-10">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <Outlet />
         </div>
       </main>
@@ -72,6 +64,19 @@ export function Layout() {
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `block rounded-lg px-3 py-2 text-sm font-medium ${isActive ? 'bg-teal-50 text-teal-900' : 'text-stone-600 hover:bg-stone-100'}`
+
+/** The same, for a page that two permissions both open (for example all scans, or only your own). */
+export function RequireAnyPermission({ permissions, children }: { permissions: string[]; children: React.ReactNode }) {
+  const { can } = useAuth()
+  if (!permissions.some(can)) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+        You do not have access to this page. Ask an administrator if you need it.
+      </div>
+    )
+  }
+  return <>{children}</>
+}
 
 /** Wraps a page so someone without the permission sees a clear message (the server refuses them anyway). */
 export function RequirePermission({ permission, children }: { permission: string; children: React.ReactNode }) {
