@@ -1,6 +1,6 @@
 # Tickets, QR codes and delivery (Phase 7)
 
-Phase 6 takes the order and the payment. Phase 7 turns a **paid order** into tickets the customer can use: a signed QR code, a PDF, a private page and an e-mail. Phase 8 (not built) will read the QR code at the gate and mark the ticket used.
+Phase 6 takes the order and the payment. Phase 7 turns a **paid order** into tickets the customer can use: a signed QR code, a PDF, a private page and an e-mail. Phase 8 reads the QR code at the gate and uses the ticket up: see [scanner.md](scanner.md).
 
 ```
 PAID order ─▶ tickets VALID ─▶ QR (signed) ─▶ order page + PDF download
@@ -13,7 +13,7 @@ PAID order ─▶ tickets VALID ─▶ QR (signed) ─▶ order page + PDF downl
 |---|---|---|
 | `PENDING` | created with the order, **not usable**: no QR, no PDF, nothing in the e-mail | order creation |
 | `VALID` | the order is paid; the QR is shown and the PDF contains it | payment confirmation |
-| `USED` | admitted at the gate | **Phase 8** (a database constraint requires `used_at`) |
+| `USED` | admitted at the gate | the gate scan (Phase 8; a database constraint requires `used_at`) |
 | `CANCELLED` | withdrawn by staff, with a reason | portal |
 | `EXPIRED` | the order was not paid in time | the 30-minute expiry |
 
@@ -48,7 +48,7 @@ signature = first 128 bits of HMAC-SHA256(key, "AZP1|<key id>|<ticket reference>
 - **Nothing secret is stored.** The code is re-derived from the reference whenever it is shown, so it is deterministic and can always be displayed again.
 - **Image.** PNG, error-correction level Q (about a quarter of the code may be damaged), 4-module quiet zone, whole-pixel modules, 600 px in the PDF and 360 px on the website. Tests decode the image with a QR reader library and verify the signature.
 
-**Not in Phase 7:** presenting a code to the server, checking the ticket's status and date, and marking it used (Phase 8 calls `QrService.verify()` and then claims the ticket atomically; see `ticketing.md`).
+Presenting a code to the server, checking the ticket's status and date and marking it used is the gate scan (Phase 8): `ScansService` calls `QrService.verify()` and then claims the ticket atomically. See [scanner.md](scanner.md).
 
 ## Ticket PDF
 
@@ -110,9 +110,9 @@ The existing `AddToWallet` button and `lib/wallet.ts` are **kept and not shown o
 | Tickets for an unpaid, expired or cancelled order | no QR, no PDF, no e-mail |
 | Edit a paid ticket's price, date or reference | refused by the database |
 
-## What is deliberately left for Phase 8
+## What Phase 7 left for Phase 8 (now built)
 
-QR scanning and the scanner screen, the gate check (existence, status, visit date, already used), marking a ticket `USED`, gate operations and analytics. Phase 7 only issues the credential and the means to verify its signature.
+QR scanning and the scanner screen, the gate check (existence, status, visit date, already used) and marking a ticket `USED` are documented in [scanner.md](scanner.md). Gate analytics are still not built.
 
 ## Known limits
 

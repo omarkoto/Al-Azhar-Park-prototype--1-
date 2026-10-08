@@ -510,7 +510,11 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await expect(old).toHaveCount(1)
     await expect(old).toContainText('Current')
     await expect(old).not.toContainText('open ended')
-    await expect(old).toContainText('sold 1×') // the order made earlier used it
+    // the orders made earlier used it: the page shows exactly as many sales as the server counts (other specs may have sold some too)
+    const prices = (await apiAs(admin, 'GET', '/prices')).data as Array<{ ticketType: { code: string }; audience: { code: string }; days: string; amountMinor: number; timesUsed: number }>
+    const sold = prices.find((p) => p.ticketType.code === 'ADULT' && p.audience.code === 'RESIDENT' && p.days === 'WEEKDAY' && p.amountMinor === 5000)!.timesUsed
+    expect(sold).toBeGreaterThanOrEqual(1)
+    await expect(old).toContainText(`sold ${sold}×`)
 
     // the website: before the new price starts, the old one; from its first day, the new one
     const site = await freshPage(browser, '/tickets')

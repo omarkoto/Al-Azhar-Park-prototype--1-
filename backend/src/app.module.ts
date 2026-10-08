@@ -15,6 +15,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
 import { MediaModule } from './modules/media/media.module';
+import { ScansModule } from './modules/scans/scans.module';
+import { isScanRoute } from './modules/scans/scan-route';
 import { TicketingModule } from './modules/ticketing/ticketing.module';
 import { EventsModule } from './modules/events/events.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
@@ -29,7 +31,12 @@ import { UsersModule } from './modules/users/users.module';
     ThrottlerModule.forRootAsync({
       inject: [AppConfigService],
       useFactory: (config: AppConfigService) => ({
-        throttlers: [{ ttl: config.get('RATE_LIMIT_TTL_SECONDS') * 1000, limit: config.get('RATE_LIMIT_MAX') }],
+        throttlers: [
+          // the general limit counts every route except the gate scanner ...
+          { name: 'default', ttl: config.get('RATE_LIMIT_TTL_SECONDS') * 1000, limit: config.get('RATE_LIMIT_MAX'), skipIf: isScanRoute },
+          // ... which has its own, higher limit, set for a real gate (SCAN_RATE_LIMIT_PER_MINUTE) and counted only there
+          { name: 'scan', ttl: 60_000, limit: config.get('SCAN_RATE_LIMIT_PER_MINUTE'), skipIf: (context) => !isScanRoute(context) },
+        ],
       }),
     }),
     PrismaModule,
@@ -43,8 +50,9 @@ import { UsersModule } from './modules/users/users.module';
     RestaurantsModule,
     EventsModule,
     TicketingModule,
+    ScansModule,
     //
-    //           ScansModule, AnalyticsModule, MediaModule …
+    //           AnalyticsModule …
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

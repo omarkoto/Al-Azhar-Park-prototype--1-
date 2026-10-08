@@ -143,3 +143,7 @@ Migrations `20261008090000_phase6_ticketing`, `…090100_phase6_price_history_gu
 ## Phase 7 additions (tickets and delivery)
 
 Migration `20261009090000_phase7_tickets_delivery`: `orders.locale` (`en` or `ar`, CHECK `ck_orders_locale`; the language the customer ordered in, used for their e-mail and ticket PDF); `notifications.dedupe_key` (unique: one message per purpose, so a repeated payment confirmation cannot queue a second e-mail) and `notifications.next_attempt_at` (when a failed message is tried again), index on `related_order_id`, CHECK `ck_notifications_attempts`. The `notifications` table is the e-mail outbox; it holds no secret. Ticket rows, the QR key id and the ticket lifecycle trigger are unchanged from Phase 1. See [tickets.md](tickets.md).
+
+## Phase 8 additions (gate scanning)
+
+Migration `20261010090000_phase8_scan_detail`: `ticket_scans.detail`, the precise result shown to the scanner (CHECK `ck_ticket_scans_detail` on the ten codes; null on older rows). The `scan_reason` enum, the table's append-only trigger, the ticket lifecycle trigger and the Cairo date function are unchanged. The scan consumes a ticket with one conditional `UPDATE … WHERE status = 'VALID' AND visit_date = azharpark_date_of($now) RETURNING id`. See [scanner.md](scanner.md).

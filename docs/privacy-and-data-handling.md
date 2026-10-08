@@ -9,7 +9,7 @@
 | Ticket customer (guest, no account) | full name, email (optional for counter sales), phone (optional), country (optional) | passwords, ID/passport numbers, date of birth, address, payment card numbers |
 | Contact form / reservation request | name, email, phone (optional), message | anything else |
 | Portal staff | name, work email, password hash (argon2id), role | personal phone/address |
-| Scans | which ticket, which staff member, gate, time, result, device/IP (for abuse investigation) | the customer's identity is reached only through the ticket |
+| Scans | which ticket (when the code identified one), a 12-character fingerprint of the scanned text (never the text itself), which staff member, gate, time, precise result, device/IP (for abuse investigation) | the customer's identity is reached only through the ticket |
 
 - **QR codes carry no personal data** (only a ticket reference + signature).
 - **Card data never touches this system**: online payments will be handled entirely by the payment provider; only a provider transaction id, amount and status are kept.

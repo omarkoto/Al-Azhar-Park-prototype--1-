@@ -10,6 +10,7 @@ const NAV: Array<{ to: string; label: string; permission: string }> = [
   { to: '/restaurants', label: 'Restaurants', permission: 'restaurants:read' },
   { to: '/events', label: 'Events', permission: 'events:read' },
   { to: '/venues', label: 'Venues', permission: 'venues:read' },
+  { to: '/scanner', label: 'Gate scanner', permission: 'scans:create' },
   { to: '/orders', label: 'Orders', permission: 'orders:read' },
   { to: '/ticket-types', label: 'Ticket types', permission: 'ticket-types:read' },
   { to: '/prices', label: 'Ticket prices', permission: 'pricing:read' },

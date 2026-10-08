@@ -9,6 +9,7 @@ const SHORTCUTS = [
   { to: '/restaurants', title: 'Restaurants', body: 'Restaurant details, hours, photos and menus.', permission: 'restaurants:read' },
   { to: '/events', title: 'Events', body: 'Events and what is coming soon: dates, venues, photos and status.', permission: 'events:read' },
   { to: '/venues', title: 'Venues', body: 'The places in the park where events happen.', permission: 'venues:read' },
+  { to: '/scanner', title: 'Gate scanner', body: 'Scan the tickets of arriving visitors at the entrance: access granted or the reason it is refused.', permission: 'scans:create' },
   { to: '/orders', title: 'Orders', body: 'Search ticket orders, see payments and tickets, cancel for an operational reason.', permission: 'orders:read' },
   { to: '/ticket-types', title: 'Ticket types', body: 'Adult, child and any other ticket the park sells, by age.', permission: 'ticket-types:read' },
   { to: '/prices', title: 'Ticket prices', body: 'What each ticket costs on weekdays and weekends, and price changes from a future date.', permission: 'pricing:read' },

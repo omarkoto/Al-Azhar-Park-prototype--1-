@@ -598,6 +598,8 @@ model TicketScan {
   gateId           String?    @map("gate_id") @db.Uuid
   result           ScanResult
   reason           ScanReason
+  /// the precise result shown to the scanner (ACCESS_GRANTED, INVALID_SIGNATURE, RETIRED_KEY, ...); null on rows from before Phase 8
+  detail           String?
   scannedAt        DateTime   @default(now()) @map("scanned_at") @db.Timestamptz(3)
   device           Json?
   ip               String?

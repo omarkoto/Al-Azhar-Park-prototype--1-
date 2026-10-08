@@ -48,6 +48,8 @@ export const envSchema = z
     RATE_LIMIT_TTL_SECONDS: z.coerce.number().int().min(1).default(60),
     AUTH_RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(100).default(1),
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
+    /** gate scans per minute per address: a busy gate scans a few tickets a second, so this is higher than the general limit */
+    SCAN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(5000).default(300),
     SWAGGER_ENABLED: bool.default(true),
 
     // Secrets — used from Phase 2 onward; mandatory (and strong) in production.

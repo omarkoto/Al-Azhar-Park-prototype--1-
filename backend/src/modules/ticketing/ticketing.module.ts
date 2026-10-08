@@ -36,6 +36,6 @@ import { PublicTicketingController, TicketingAdminController } from './ticketing
     QrService, TicketPdfService, TicketDeliveryService,
     BookingConfigService, OrderLifecycleService, OrderExpiryScheduler, PaymentsService, PurchaseService, OrdersService, TicketTypesService, PricesService,
   ],
-  exports: [Clock],
+  exports: [Clock, QrService],
 })
 export class TicketingModule {}
