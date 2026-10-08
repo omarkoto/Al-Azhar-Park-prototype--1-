@@ -36,7 +36,7 @@ export function Layout() {
               <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-stone-400 uppercase">{g.title}</p>
               <div className="space-y-1">
                 {g.items.map((n) => (
-                  <NavLink key={n.to} to={n.to} onClick={() => setOpen(false)} className={linkClass}>
+                  <NavLink key={n.to} to={n.to} end={n.to === '/analytics'} onClick={() => setOpen(false)} className={linkClass}>
                     {n.label}
                   </NavLink>
                 ))}

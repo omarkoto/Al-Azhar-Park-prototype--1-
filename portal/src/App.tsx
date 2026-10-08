@@ -16,6 +16,7 @@ import { ScansPage } from './pages/Scans'
 import { TicketsPage } from './pages/Tickets'
 import { PricesPage } from './pages/Prices'
 import { TicketTypesPage } from './pages/TicketTypes'
+import { AnalyticsAttendancePage, AnalyticsEventsPage, AnalyticsOverviewPage, AnalyticsReportsPage, AnalyticsSalesPage, AnalyticsTicketsPage } from './pages/Analytics'
 import { VenuesPage } from './pages/Venues'
 import { RestaurantEditor, RestaurantsPage } from './pages/Restaurants'
 
@@ -43,6 +44,12 @@ export default function App() {
         <Route path="media" element={<RequirePermission permission="media:read"><MediaPage /></RequirePermission>} />
         <Route path="users" element={<RequirePermission permission="users:read"><UsersPage /></RequirePermission>} />
         <Route path="roles" element={<RequirePermission permission="roles:read"><RolesPage /></RequirePermission>} />
+        <Route path="analytics" element={<RequireAnyPermission permissions={['analytics:read', 'analytics:operations', 'analytics:content']}><AnalyticsOverviewPage /></RequireAnyPermission>} />
+        <Route path="analytics/sales" element={<RequireAnyPermission permissions={['analytics:read']}><AnalyticsSalesPage /></RequireAnyPermission>} />
+        <Route path="analytics/attendance" element={<RequireAnyPermission permissions={['analytics:read', 'analytics:operations']}><AnalyticsAttendancePage /></RequireAnyPermission>} />
+        <Route path="analytics/tickets" element={<RequireAnyPermission permissions={['analytics:read', 'analytics:operations']}><AnalyticsTicketsPage /></RequireAnyPermission>} />
+        <Route path="analytics/events" element={<RequireAnyPermission permissions={['analytics:read', 'analytics:content']}><AnalyticsEventsPage /></RequireAnyPermission>} />
+        <Route path="analytics/reports" element={<RequireAnyPermission permissions={['analytics:read', 'analytics:operations', 'analytics:content']}><AnalyticsReportsPage /></RequireAnyPermission>} />
         <Route path="*" element={<p className="text-sm text-stone-500">Page not found.</p>} />
       </Route>
     </Routes>

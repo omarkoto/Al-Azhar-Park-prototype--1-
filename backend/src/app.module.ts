@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from './modules/auth/guards/permissions.guard';
 import { MediaModule } from './modules/media/media.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ScansModule } from './modules/scans/scans.module';
 import { isScanRoute } from './modules/scans/scan-route';
@@ -53,6 +54,7 @@ import { UsersModule } from './modules/users/users.module';
     TicketingModule,
     ScansModule,
     OperationsModule,
+    AnalyticsModule,
     //
     //           AnalyticsModule …
   ],

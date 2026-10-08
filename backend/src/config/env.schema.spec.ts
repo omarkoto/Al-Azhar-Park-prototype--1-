@@ -139,3 +139,22 @@ describe('e-mail and QR key settings', () => {
     expect(() => validateEnv({ ...base, TICKET_QR_KEYS: '[]' })).toThrow(/TICKET_QR_KEYS/);
   });
 });
+
+describe('analytics limits', () => {
+  it('defaults to a year-and-a-day period and 100,000 exported rows', () => {
+    const env = validateEnv(base);
+    expect(env.ANALYTICS_MAX_RANGE_DAYS).toBe(366);
+    expect(env.ANALYTICS_EXPORT_MAX_ROWS).toBe(100_000);
+  });
+
+  it('can be configured within sensible bounds', () => {
+    const env = validateEnv({ ...base, ANALYTICS_MAX_RANGE_DAYS: '31', ANALYTICS_EXPORT_MAX_ROWS: '5000' });
+    expect(env.ANALYTICS_MAX_RANGE_DAYS).toBe(31);
+    expect(env.ANALYTICS_EXPORT_MAX_ROWS).toBe(5000);
+  });
+
+  it('rejects a period or row cap that is zero, negative, absurd or not a number', () => {
+    for (const v of ['0', '-5', '3661', 'many']) expect(() => validateEnv({ ...base, ANALYTICS_MAX_RANGE_DAYS: v })).toThrow(/ANALYTICS_MAX_RANGE_DAYS/);
+    for (const v of ['99', '1000001', 'lots']) expect(() => validateEnv({ ...base, ANALYTICS_EXPORT_MAX_ROWS: v })).toThrow(/ANALYTICS_EXPORT_MAX_ROWS/);
+  });
+});

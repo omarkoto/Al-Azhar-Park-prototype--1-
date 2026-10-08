@@ -21,9 +21,9 @@ describe('the menu', () => {
     expect(labels(visibleNav(canOnly('scans:read')))).toEqual(['Scans'])
   })
 
-  it('shows everything to someone who holds every permission, once each, in four groups', () => {
+  it('shows everything to someone who holds every permission, once each, in five groups', () => {
     const all = visibleNav(() => true)
-    expect(all.map((g) => g.title)).toEqual(['Operations', 'Park & content', 'Tickets & pricing', 'Administration'])
+    expect(all.map((g) => g.title)).toEqual(['Operations', 'Analytics', 'Park & content', 'Tickets & pricing', 'Administration'])
     const routes = labels(all)
     expect(new Set(routes).size).toBe(routes.length)
     expect(NAV_GROUPS.flatMap((g) => g.items).every((i) => i.to.startsWith('/') && i.anyOf.length > 0)).toBe(true)

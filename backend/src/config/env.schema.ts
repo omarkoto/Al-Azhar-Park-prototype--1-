@@ -49,6 +49,10 @@ export const envSchema = z
     AUTH_RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(100).default(1),
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
     /** gate scans per minute per address: a busy gate scans a few tickets a second, so this is higher than the general limit */
+    /** the longest period a report may cover, so one request cannot ask the database for years of data */
+    ANALYTICS_MAX_RANGE_DAYS: z.coerce.number().int().min(1).max(3660).default(366),
+    /** the most rows one CSV export may hold */
+    ANALYTICS_EXPORT_MAX_ROWS: z.coerce.number().int().min(100).max(1_000_000).default(100_000),
     SCAN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(5000).default(300),
     SWAGGER_ENABLED: bool.default(true),
 

@@ -14,6 +14,12 @@ Authorization is always by **permission** (`resource:action`), never by role nam
 | | Gate scanner `/scanner` | `scans:create` |
 | | Scans `/scans` | `scans:read` (everyone's) or `scans:read_own` (yours) |
 | | Gates `/gates` | `gates:read` (changes need `gates:write`) |
+| **Analytics** | Overview `/analytics` | `analytics:read`, `analytics:operations` or `analytics:content` (shows only the sections allowed) |
+| | Sales `/analytics/sales` | `analytics:read` |
+| | Attendance `/analytics/attendance` | `analytics:read` or `analytics:operations` |
+| | Ticket states `/analytics/tickets` | `analytics:read` or `analytics:operations` |
+| | Event statistics `/analytics/events` | `analytics:read` or `analytics:content` |
+| | Reports `/analytics/reports` | any analytics permission (each download needs its own report's permission) |
 | **Park & content** | Park information, Contact details, Opening hours, Events, Venues, Restaurants, Media library | `park:read`, `contact:read`, `hours:read`, `events:read`, `venues:read`, `restaurants:read`, `media:read` |
 | **Tickets & pricing** | Ticket types, Ticket prices | `ticket-types:read`, `pricing:read` |
 | **Administration** | Staff accounts, Roles & permissions | `users:read`, `roles:read` |
@@ -66,9 +72,13 @@ Phase 6 already had the order list and detail; Phase 9 added finding an order **
 
 Unchanged pages, now reachable from the grouped menu. The dashboard links to opening hours and events; events on the dashboard show draft / coming soon / published. "Reserve a table" still goes to the restaurant's Instagram link entered in the portal; there is no booking system.
 
+## Analytics (Phase 10)
+
+The Analytics group holds the period picker (Today, Yesterday, Last 7 days, Last 30 days, This month, Previous month, Custom range), the *Count by* choice (sale date or visit date) and the filters, all kept in the address bar so a report can be bookmarked or sent. A custom range is checked in the portal before the server is asked (both dates, start not after end, within the configured maximum) and the server checks again. Charts are SVG with a table alternative for each. Every definition (revenue, sale date versus visit date, attendance, ticket states, gate and scan metrics, Cairo-day rules, export format and privacy, limits) is in [analytics.md](analytics.md).
+
 ## Audit
 
-Everything staff change is audited through the existing audit service. Phase 9 added `gate.*` and `ticket.pdf_downloaded`; ticket and order cancellation, event and restaurant changes, price and ticket-type changes, user and role changes were already audited in earlier phases. Reading pages (dashboard, lists) is not audited.
+Everything staff change is audited through the existing audit service. Phase 9 added `gate.*` and `ticket.pdf_downloaded`; Phase 10 adds `analytics.exported` (who, which report, period, basis, filters; never the data); ticket and order cancellation, event and restaurant changes, price and ticket-type changes, user and role changes were already audited in earlier phases. Reading pages (dashboard, lists) is not audited.
 
 ## Layout
 
@@ -76,7 +86,7 @@ The content area is wider (up to 72 rem) and every table sits in its own scrolli
 
 ## Limits and deferred work
 
-- **Not built (Phase 10):** analytics, charts, history, export, forecasting. **Not built (other):** a settings page (the settings permissions exist, but nothing edits settings yet; same-day cut-off, advance days and order expiry are changed in the database), a customers page, staff-to-gate assignment, a "recent scans" screen on the scanner, per-gate daily limits.
+- **Analytics, charts and CSV exports were added in Phase 10**: see [analytics.md](analytics.md). **Not built:** forecasting, scheduled reports. **Not built (other):** a settings page (the settings permissions exist, but nothing edits settings yet; same-day cut-off, advance days and order expiry are changed in the database), a customers page, staff-to-gate assignment, a "recent scans" screen on the scanner, per-gate daily limits.
 - The dashboard has no caching: each refresh runs a handful of small indexed queries (grouped counts by day range, latest ten rows). If it ever becomes slow, add a cache or a small pre-aggregated table then, with measurements (the day-range queries already use the existing indexes on creation time, visit date and scan time).
 - "Revenue today" is by when the order was **placed**; an order placed at 23:50 and paid at 00:10 counts for the earlier day.
 - Staff see operations figures for "today" in Cairo even if their own device is in another time zone.

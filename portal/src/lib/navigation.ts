@@ -26,6 +26,17 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    title: 'Analytics',
+    items: [
+      { to: '/analytics', label: 'Overview', anyOf: ['analytics:read', 'analytics:operations', 'analytics:content'] },
+      { to: '/analytics/sales', label: 'Sales', anyOf: ['analytics:read'] },
+      { to: '/analytics/attendance', label: 'Attendance', anyOf: ['analytics:read', 'analytics:operations'] },
+      { to: '/analytics/tickets', label: 'Ticket states', anyOf: ['analytics:read', 'analytics:operations'] },
+      { to: '/analytics/events', label: 'Event statistics', anyOf: ['analytics:read', 'analytics:content'] },
+      { to: '/analytics/reports', label: 'Reports', anyOf: ['analytics:read', 'analytics:operations', 'analytics:content'] },
+    ],
+  },
+  {
     title: 'Park & content',
     items: [
       { to: '/park', label: 'Park information', anyOf: ['park:read'] },

@@ -23,6 +23,10 @@
 - Customers reach their own order/tickets only through **expiring, hashed access tokens** — never predictable ids.
 - Admin APIs are never reachable without authentication; every portal endpoint is guarded.
 
+## Reports and exports (Phase 10)
+- Analytics reports and CSV exports hold **aggregates only**: counts and amounts grouped by date, ticket type, audience, gate or scan result. They contain no customer names, e-mails, phone numbers, order numbers, ticket references, QR text, token fingerprints, scanner users or IP addresses, so exporting does not export personal data. Anonymising a customer changes no report figure.
+- Access follows the existing analytics permissions: `analytics:read` (all, including money), `analytics:operations` (entry and ticket states, no money), `analytics:content` (event statistics). Every export is audited (`analytics.exported`) with the report, period and filters, never the data. See [analytics.md](analytics.md).
+
 ## Logging and audit
 - Application logs redact passwords, tokens, cookies and `Authorization` headers (`REDACTED_PATHS`).
 - `audit_logs` records who did what (including price changes, manual payments, cancellations, privacy actions). It is **append-only by database trigger**.
