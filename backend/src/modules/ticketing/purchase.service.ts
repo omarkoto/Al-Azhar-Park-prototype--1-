@@ -20,6 +20,14 @@ import { OrderView, orderView, ORDER_INCLUDE } from './order-view';
 
 type Db = Prisma.TransactionClient | PrismaService;
 
+/**
+ * A new order needs an Idempotency-Key of at least this many characters: the key is what lets a retry get an order (and a fresh
+ * access key for it) back, so it must not be guessable. Keys of 8–15 characters were accepted before; an order that already
+ * exists under one can still be replayed, but no new order is created with one.
+ */
+export const MIN_IDEMPOTENCY_KEY_LENGTH = 16;
+export const IDEMPOTENCY_KEY_MESSAGE = `Idempotency-Key must be ${MIN_IDEMPOTENCY_KEY_LENGTH}–100 letters, digits, "-" or "_" (a random UUID is ideal).`;
+
 const SALE_ERRORS = {
   PAST_DATE: ['DATE_IN_THE_PAST', 'That date has already passed. Please choose today or a later date.'],
   TOO_FAR_AHEAD: ['DATE_TOO_FAR_AHEAD', 'That date is too far ahead to book yet.'],
@@ -211,6 +219,7 @@ export class PurchaseService {
     if (idempotencyKey !== undefined) {
       const replay = await this.replay(idempotencyKey, dto);
       if (replay) return replay;
+      if (idempotencyKey.length < MIN_IDEMPOTENCY_KEY_LENGTH) throw new AppException('INVALID_IDEMPOTENCY_KEY', IDEMPOTENCY_KEY_MESSAGE, 400);
     }
 
     const cfg = await this.config.load();

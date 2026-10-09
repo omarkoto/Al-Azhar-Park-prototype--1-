@@ -9,6 +9,7 @@ import { AuditService, RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { declaredTypeMatches, MAX_DIMENSION, pdfRiskyFeature, safeFileName, sniffFile } from './media-sniff';
 import { MediaStorage, newStorageKey, STORAGE_KEY } from './media-storage';
+import { fileTooLarge, mediaByteLimits } from './upload-limits';
 
 export interface MediaView {
   id: string;
@@ -52,10 +53,7 @@ export class MediaService {
   ) {}
 
   get maxBytes() {
-    return {
-      image: Math.round(this.config.get('MEDIA_MAX_IMAGE_MB') * 1024 * 1024),
-      pdf: Math.round(this.config.get('MEDIA_MAX_PDF_MB') * 1024 * 1024),
-    };
+    return mediaByteLimits(this.config);
   }
 
   async upload(input: UploadInput, actor: AuthenticatedUser, ctx: RequestContext): Promise<MediaView> {
@@ -68,7 +66,7 @@ export class MediaService {
     }
     const limit = this.maxBytes[sniffed.kind];
     if (input.buffer.length > limit) {
-      throw new AppException('FILE_TOO_LARGE', `The file is too large (the limit for ${sniffed.kind === 'pdf' ? 'PDF files' : 'images'} is ${Math.round(limit / 1048576)} MB).`, 413);
+      throw fileTooLarge(sniffed.kind, limit);
     }
     if (sniffed.kind === 'image' && (!sniffed.width || !sniffed.height || sniffed.width > MAX_DIMENSION || sniffed.height > MAX_DIMENSION)) {
       throw new AppException('IMAGE_DIMENSIONS', `Images must be at most ${MAX_DIMENSION} pixels on each side.`, 422);

@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { API, PORTAL, USERS, nav, openSection, signedInPage } from './helpers'
+import { API, PORTAL, USERS, expectSignedIn, nav, openSection, signedInPage } from './helpers'
 import { addDays, apiAs, buyTicket, keepOpenToday, nextWeekday, residentAdultPrice } from './ticket-helpers'
 
 const HEADLINE: Record<string, string> = {
@@ -324,7 +324,7 @@ test.describe.serial('portal operations', () => {
       await page.getByLabel('Email').fill(USERS.admin)
       await page.getByLabel('Password').fill(process.env.E2E_PASSWORD ?? 'E2e-Password-2026!')
       await page.getByRole('button', { name: 'Sign in' }).click()
-      await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
+      await expectSignedIn(page)
       await expect(page.getByTestId('park-status')).toBeVisible()
       await expectNoPageOverflow(page)
       if (width < 768) {

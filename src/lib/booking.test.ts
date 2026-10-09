@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   cartSelection, customerInput, customerProblems, formatCountdown, makeTicketId, newIdempotencyKey, parseTicketId, pounds, problemKey, sanitizeLines, secondsLeft, toAsciiDigits, tokenFromHash,
 } from './booking'
@@ -113,6 +113,16 @@ describe('order key and idempotency', () => {
     const a = newIdempotencyKey()
     expect(a).not.toBe(newIdempotencyKey())
     expect(a).toMatch(/^[A-Za-z0-9_-]{8,100}$/)
+  })
+  it('makes keys of at least 16 characters, the minimum the server now requires for a new order, with or without randomUUID', () => {
+    const accepted = /^[A-Za-z0-9_-]{16,100}$/
+    for (let i = 0; i < 50; i += 1) expect(newIdempotencyKey()).toMatch(accepted)
+    vi.stubGlobal('crypto', {}) // an older browser without crypto.randomUUID
+    try {
+      for (let i = 0; i < 200; i += 1) expect(newIdempotencyKey()).toMatch(accepted)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
 

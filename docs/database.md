@@ -147,3 +147,7 @@ Migration `20261009090000_phase7_tickets_delivery`: `orders.locale` (`en` or `ar
 ## Phase 8 additions (gate scanning)
 
 Migration `20261010090000_phase8_scan_detail`: `ticket_scans.detail`, the precise result shown to the scanner (CHECK `ck_ticket_scans_detail` on the ten codes; null on older rows). The `scan_reason` enum, the table's append-only trigger, the ticket lifecycle trigger and the Cairo date function are unchanged. The scan consumes a ticket with one conditional `UPDATE … WHERE status = 'VALID' AND visit_date = azharpark_date_of($now) RETURNING id`. See [scanner.md](scanner.md).
+
+- Phase 11 migration `20261011090000_phase11_truncate_guard`: `audit_logs` and `ticket_scans` also refuse `TRUNCATE` (statement-level `BEFORE TRUNCATE` triggers using `azharpark_reject_mutation()`).
+- Phase 11 migration `20261011100000_phase11_history_truncate_guard`: `orders`, `order_items`, `payments`, `tickets` and `ticket_prices` also refuse `TRUNCATE` (`azharpark_reject_truncate()`, one statement-level trigger each), consistent with their existing no-delete and immutability rules.
+- The test database reset finds every `*_no_truncate` trigger, disables them for its own transaction only and enables them again. Rollback statements for both migrations are in [security-review-phase11.md](security-review-phase11.md).

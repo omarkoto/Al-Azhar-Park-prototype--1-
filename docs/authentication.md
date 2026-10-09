@@ -103,3 +103,7 @@ Permissions are `resource:action` strings (46 seeded). **Code never compares rol
 - Sign-in lock is per account (counter resets when the lock starts), plus per-IP throttling. Throttle counters are in memory (one server); a Redis store is needed before running several instances.
 - Expired token rows are not purged yet (a scheduled clean-up arrives with the jobs phase).
 - No multi-factor authentication.
+
+## Phase 11 hardening
+
+`NODE_ENV` is now required (no default), production refuses weak, placeholder, development and shared secrets, and Swagger is off in production unless enabled. See [security-review-phase11.md](security-review-phase11.md).

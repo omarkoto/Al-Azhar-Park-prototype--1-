@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { expect, test, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test'
 // the SAME code the server signs and checks with: the test builds a ticket's QR text with it, there is no second scheme
 import { createQrPayload } from '../../backend/src/common/security/ticket-qr'
-import { API, PORTAL, SITE, USERS, nav, signedInPage } from './helpers'
+import { API, PORTAL, SITE, USERS, expectSignedIn, nav, signedInPage } from './helpers'
 import { keepOpenToday } from './ticket-helpers'
 
 function backendSecret(): string {
@@ -72,7 +72,7 @@ async function openScanner(browser: Browser, email: string = USERS.staff, init?:
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(process.env.E2E_PASSWORD ?? 'E2e-Password-2026!')
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
+  await expectSignedIn(page)
   await nav(page).getByRole('link', { name: 'Gate scanner', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Gate scanner' })).toBeVisible()
   return { page, context }
@@ -245,7 +245,7 @@ test.describe.serial('gate scanner', () => {
 
     // leaving the scanner lets go of the camera
     await nav(page).getByRole('link', { name: 'Dashboard', exact: true }).click()
-    await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^Welcome,/ })).toBeVisible() // the dashboard's own heading (the login page says "Welcome back")
     const states = await page.evaluate(() => (window as unknown as { __cameraTracks: MediaStreamTrack[] }).__cameraTracks.map((t) => t.readyState))
     expect(states.length).toBeGreaterThan(0)
     expect(states.every((s) => s === 'ended')).toBe(true)

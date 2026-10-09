@@ -91,6 +91,11 @@ describe('media library (e2e)', () => {
     it('refuses absurd pixel dimensions, active PDFs, empty files and a missing file', async () => {
       expect((await upload('content', samples.png(13_000, 100)).expect(422)).body.error.code).toBe('IMAGE_DIMENSIONS');
       expect((await upload('content', samples.pdf('<< /S /JavaScript /JS (x) >>'), { name: 'm.pdf', type: 'application/pdf' }).expect(422)).body.error.code).toBe('UNSAFE_PDF');
+      // the same features spelled with PDF name escapes (/J#61vaScript is /JavaScript to a PDF reader) are refused too
+      for (const spelling of ['/S /J#61vaScript /J#53 (x)', '/S /L#61unch /F (cmd.exe)', '/Names << /Embedd#65dFiles 2 0 R >> /Type /Embedd#65dFile']) {
+        expect((await upload('content', samples.pdf(`<< ${spelling} >>`), { name: 'm.pdf', type: 'application/pdf' }).expect(422)).body.error.code).toBe('UNSAFE_PDF');
+      }
+      expect(files()).toHaveLength(0);
       await upload('content', Buffer.alloc(0)).expect(400);
       const none = await request(app.getHttpServer()).post(`${API}/media`).set('X-Forwarded-For', nextIp()).set(auth('content')).field('altEn', 'x').expect(400);
       expect(none.body.error.code).toBe('FILE_REQUIRED');

@@ -17,6 +17,19 @@ export const USERS = {
 
 export const nav = (page: Page) => page.getByRole('navigation', { name: 'Main' })
 
+/**
+ * The reliable "signed in" signal: the app has left /login (it only does so once the session exists) and shows a protected page,
+ * which has the <main> landmark the login page lacks. A heading is NOT reliable: the login page itself says "Welcome back", so
+ * waiting for /^Welcome/ returned while still on the login page, before sign-in had finished.
+ */
+export async function expectSignedIn(page: Page, timeout = 10_000): Promise<void> {
+  await expect(page).not.toHaveURL(/\/login/, { timeout })
+  await expect(page.getByRole('main')).toBeVisible({ timeout })
+}
+
+/** The same signal as a yes/no, for a sign-in that is expected to fail (a deactivated account stays on the login page). */
+export const isSignedIn = (page: Page, timeout = 6000): Promise<boolean> => expectSignedIn(page, timeout).then(() => true, () => false)
+
 /** Signs in through the real login form. */
 export async function signIn(page: Page, email: string, password = PASSWORD): Promise<void> {
   await page.goto(`${PORTAL}/login`)
@@ -29,7 +42,7 @@ export async function signedInPage(browser: Browser, email: string): Promise<{ p
   const context = await browser.newContext()
   const page = await context.newPage()
   await signIn(page, email)
-  await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
+  await expectSignedIn(page)
   return { page, context }
 }
 

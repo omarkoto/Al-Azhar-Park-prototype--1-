@@ -1,9 +1,7 @@
 import { Body, Controller, Delete, Get, Header, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, Res, UploadedFile, UseInterceptors, StreamableFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
-import { memoryStorage } from 'multer';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { paginationQuerySchema } from '../../common/dto/pagination';
@@ -13,9 +11,7 @@ import { RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser, Public, RequestCtx, RequirePermissions } from '../auth/decorators';
 import { MediaService } from './media.service';
-
-/** Hard ceiling for the request body; the per-type limits (images / PDFs) are checked after the file type is known. */
-const UPLOAD_CEILING = 101 * 1024 * 1024;
+import { MediaUploadInterceptor } from './upload-limits';
 
 /** multer hands over multipart file names as latin1; browsers send UTF-8 (Arabic and accented names) */
 function utf8Name(name: string): string {
@@ -39,7 +35,8 @@ export class MediaController {
   @Throttle({ default: { limit: 40, ttl: 60_000 } })
   @ApiOperation({ summary: 'Upload an image (JPEG, PNG, WebP) or a PDF. The type is decided from the file\'s bytes, never from its name.' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: UPLOAD_CEILING, files: 1, fields: 5, parts: 7 } }))
+  // the size limits come from MEDIA_MAX_IMAGE_MB / MEDIA_MAX_PDF_MB and are applied while the file arrives (see upload-limits.ts)
+  @UseInterceptors(MediaUploadInterceptor)
   upload(@UploadedFile() file: Express.Multer.File | undefined, @Body() body: UploadFieldsDto, @CurrentUser() actor: AuthenticatedUser, @RequestCtx() ctx: RequestContext) {
     if (!file) throw new AppException('FILE_REQUIRED', 'Choose a file to upload (form field "file").', 400);
     return this.media.upload({ buffer: file.buffer, originalName: utf8Name(file.originalname), declaredType: file.mimetype, altEn: body.altEn, altAr: body.altAr }, actor, ctx);

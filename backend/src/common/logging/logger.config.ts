@@ -20,6 +20,15 @@ export const REDACTED_PATHS = [
   '*.token',
 ];
 
+/**
+ * The request path without its query string. Staff search boxes put customer e-mail addresses and phone numbers in the
+ * query (`/orders?search=mona@example.com`), so the query is never logged; the path, method, status and request id are
+ * enough to investigate a problem.
+ */
+export function pathOnly(url: string | undefined): string {
+  return (url ?? '').split(/[?#]/, 1)[0];
+}
+
 const QUIET_PATHS = ['/api/v1/health', '/api/v1/health/ready'];
 
 /** Structured JSON logs in production; readable colourised lines in development. */
@@ -34,14 +43,14 @@ export function buildLoggerParams(config: AppConfigService): Params {
         return id;
       },
       redact: { paths: REDACTED_PATHS, censor: '[redacted]' },
-      autoLogging: { ignore: (req: IncomingMessage) => QUIET_PATHS.includes((req.url ?? '').split('?')[0]) },
+      autoLogging: { ignore: (req: IncomingMessage) => QUIET_PATHS.includes(pathOnly(req.url)) },
       customLogLevel: (_req: IncomingMessage, res: ServerResponse, err?: Error) => {
         if (err || res.statusCode >= 500) return 'error';
         if (res.statusCode >= 400) return 'warn';
         return 'info';
       },
       serializers: {
-        req: (req: { id: string; method: string; url: string }) => ({ id: req.id, method: req.method, url: req.url }),
+        req: (req: { id: string; method: string; url: string }) => ({ id: req.id, method: req.method, url: pathOnly(req.url) }),
         res: (res: { statusCode: number }) => ({ statusCode: res.statusCode }),
       },
       ...(dev

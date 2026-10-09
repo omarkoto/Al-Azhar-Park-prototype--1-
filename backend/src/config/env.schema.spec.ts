@@ -1,10 +1,15 @@
 import { validateEnv } from './env.schema';
 
-const base = { DATABASE_URL: 'postgresql://u:p@localhost:5432/db' };
+// independent, random-looking secrets (production now refuses repeated patterns, placeholders and reuse)
+const SECRET_A = 'Qm7vK2xR9wLz4TnB8dYc1HfJ6sPa3GuE5ioVrXtN0Wk';
+const SECRET_B = 'h3Zt8PqLw0YcN5vBx2RkM9aUe7GdJ4sFoT1iXn6VyEr';
+const SECRET_C = 'Bn5Xc8Wq2Lk7Rv0Ty3ZmJ9dPs4GhUe1AoFi6NtYxVrQw';
+
+const base = { NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost:5432/db' };
 const prodSecrets = {
-  JWT_ACCESS_SECRET: 'a'.repeat(40),
-  JWT_REFRESH_SECRET: 'b'.repeat(40),
-  TICKET_TOKEN_PEPPER: 'c'.repeat(40),
+  JWT_ACCESS_SECRET: SECRET_A,
+  JWT_REFRESH_SECRET: SECRET_B,
+  TICKET_TOKEN_PEPPER: SECRET_C,
   CORS_ORIGINS: 'https://www.azharpark.com',
 };
 
@@ -87,7 +92,7 @@ describe('validateEnv', () => {
 
 describe('production CORS origins', () => {
   const prod = {
-    NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40),
+    NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: SECRET_A, JWT_REFRESH_SECRET: SECRET_B, TICKET_TOKEN_PEPPER: SECRET_C,
   };
   it('requires https for every origin (the website, the portal and any other)', () => {
     expect(() => validateEnv({ ...prod, CORS_ORIGINS: 'https://alazharpark.com,https://admin.alazharpark.com' })).not.toThrow();
@@ -96,18 +101,18 @@ describe('production CORS origins', () => {
 });
 
 describe('AUTH_RATE_LIMIT_MULTIPLIER', () => {
-  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: SECRET_A, JWT_REFRESH_SECRET: SECRET_B, TICKET_TOKEN_PEPPER: SECRET_C, CORS_ORIGINS: 'https://alazharpark.com' };
   it('is 1 by default, can be raised outside production, and is refused above 1 in production', () => {
-    expect(validateEnv({ DATABASE_URL: 'postgresql://u:p@localhost/x' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(1);
-    expect(validateEnv({ DATABASE_URL: 'postgresql://u:p@localhost/x', AUTH_RATE_LIMIT_MULTIPLIER: '20' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(20);
+    expect(validateEnv({ NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost/x' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(1);
+    expect(validateEnv({ NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost/x', AUTH_RATE_LIMIT_MULTIPLIER: '20' }).AUTH_RATE_LIMIT_MULTIPLIER).toBe(20);
     expect(() => validateEnv({ ...prod, AUTH_RATE_LIMIT_MULTIPLIER: '5' })).toThrow(/AUTH_RATE_LIMIT_MULTIPLIER/);
     expect(() => validateEnv({ ...prod })).not.toThrow();
   });
 });
 
 describe('PAYMENT_PROVIDER', () => {
-  const base = { DATABASE_URL: 'postgresql://u:p@localhost/x' };
-  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  const base = { NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost/x' };
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: SECRET_A, JWT_REFRESH_SECRET: SECRET_B, TICKET_TOKEN_PEPPER: SECRET_C, CORS_ORIGINS: 'https://alazharpark.com' };
   it('is optional, accepts none and mock outside production, and refuses mock in production', () => {
     expect(validateEnv(base).PAYMENT_PROVIDER).toBeUndefined();
     expect(validateEnv({ ...base, PAYMENT_PROVIDER: 'mock' }).PAYMENT_PROVIDER).toBe('mock');
@@ -118,8 +123,8 @@ describe('PAYMENT_PROVIDER', () => {
 });
 
 describe('e-mail and QR key settings', () => {
-  const base = { DATABASE_URL: 'postgresql://u:p@localhost/x' };
-  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: 'a'.repeat(40), JWT_REFRESH_SECRET: 'b'.repeat(40), TICKET_TOKEN_PEPPER: 'c'.repeat(40), CORS_ORIGINS: 'https://alazharpark.com' };
+  const base = { NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost/x' };
+  const prod = { NODE_ENV: 'production', DATABASE_URL: 'postgresql://u:p@db:5432/x', JWT_ACCESS_SECRET: SECRET_A, JWT_REFRESH_SECRET: SECRET_B, TICKET_TOKEN_PEPPER: SECRET_C, CORS_ORIGINS: 'https://alazharpark.com' };
   it('accepts the three e-mail providers outside production, and refuses unknown ones', () => {
     for (const p of ['none', 'log', 'smtp']) expect(validateEnv({ ...base, EMAIL_PROVIDER: p }).EMAIL_PROVIDER).toBe(p);
     expect(() => validateEnv({ ...base, EMAIL_PROVIDER: 'carrier-pigeon' })).toThrow(/EMAIL_PROVIDER/);

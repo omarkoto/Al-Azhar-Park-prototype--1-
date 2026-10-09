@@ -306,7 +306,7 @@ describe('ticket purchasing (e2e)', () => {
     });
 
     it('is safe to retry with the same Idempotency-Key', async () => {
-      const key = 'retry-key-0001';
+      const key = 'retry-key-0000001';
       const first = await placeOrder({}, { 'Idempotency-Key': key }).expect(201);
       const again = await placeOrder({}, { 'Idempotency-Key': key }).expect(200);
       expect(again.body.data.order.orderNumber).toBe(first.body.data.order.orderNumber);
@@ -319,10 +319,81 @@ describe('ticket purchasing (e2e)', () => {
     });
 
     it('creates exactly one order when the same key arrives twice at once', async () => {
-      const key = 'parallel-key-01';
+      const key = 'parallel-key-000001';
       const results = await Promise.all([placeOrder({}, { 'Idempotency-Key': key }), placeOrder({}, { 'Idempotency-Key': key })]);
       expect(results.map((r) => r.status).sort()).toEqual([200, 201]);
       expect(await prisma.order.count()).toBe(1);
+    });
+
+    describe('the Idempotency-Key a new order needs (at least 16 characters)', () => {
+      it('refuses a key of 15 characters, creating nothing, and accepts 16 up to 100', async () => {
+        const short = await placeOrder({}, { 'Idempotency-Key': 'a'.repeat(15) }).expect(400);
+        expect(short.body.error.code).toBe('INVALID_IDEMPOTENCY_KEY');
+        expect(short.body.error.message).toContain('16');
+        expect(await prisma.order.count()).toBe(0);
+        expect(await prisma.customer.count()).toBe(0);
+        expect(await prisma.payment.count()).toBe(0);
+        await placeOrder({}, { 'Idempotency-Key': 'b'.repeat(16) }).expect(201);
+        await placeOrder({}, { 'Idempotency-Key': 'c'.repeat(100) }).expect(201);
+        const long = await placeOrder({}, { 'Idempotency-Key': 'd'.repeat(101) }).expect(400);
+        expect(long.body.error.code).toBe('INVALID_IDEMPOTENCY_KEY');
+        expect(await prisma.order.count()).toBe(2);
+      });
+
+      it('refuses keys with characters outside letters, digits, - and _ whatever their length', async () => {
+        for (const key of ['key with spaces 0000000', 'key/with/slashes0000', 'key.with.dots.0000001', 'key;drop-table-orders--1']) {
+          expect((await placeOrder({}, { 'Idempotency-Key': key }).expect(400)).body.error.code).toBe('INVALID_IDEMPOTENCY_KEY');
+        }
+        expect(await prisma.order.count()).toBe(0);
+      });
+
+      it('still works without a key (the key is optional), and the UUID keys the website sends are accepted', async () => {
+        await placeOrder({}).expect(201);
+        await placeOrder({}, { 'Idempotency-Key': '3f2b8c1e-9d4a-4e7b-8a61-5c0d2e9f7a13' }).expect(201);
+        expect(await prisma.order.count()).toBe(2);
+      });
+
+      it('a valid key retried gets the same order back and a working access key, never a second order', async () => {
+        const key = 'compat-key-0000001';
+        const first = await placeOrder({}, { 'Idempotency-Key': key }).expect(201);
+        const again = await placeOrder({}, { 'Idempotency-Key': key }).expect(200);
+        expect(again.body.data.order.orderNumber).toBe(first.body.data.order.orderNumber);
+        expect(again.body.data.accessToken).not.toBe(first.body.data.accessToken);
+        await viewOrder(first.body.data.order.orderNumber, again.body.data.accessToken).expect(200);
+        await viewOrder(first.body.data.order.orderNumber, first.body.data.accessToken).expect(200);
+        expect(await prisma.order.count()).toBe(1);
+        expect(await prisma.ticket.count()).toBe(3);
+      });
+
+      it('an order created under an older, shorter key can still be replayed, but a short key never creates a new order', async () => {
+        const first = await placeOrder({}, { 'Idempotency-Key': 'legacy-key-placeholder-1' }).expect(201);
+        // as if it had been created before Phase 11, when 8 characters were enough
+        await prisma.$executeRawUnsafe('ALTER TABLE orders DISABLE TRIGGER trg_orders_immutable');
+        try {
+          await prisma.$executeRawUnsafe("UPDATE orders SET idempotency_key = 'old-key-1' WHERE idempotency_key = 'legacy-key-placeholder-1'");
+        } finally {
+          await prisma.$executeRawUnsafe('ALTER TABLE orders ENABLE TRIGGER trg_orders_immutable');
+        }
+        const again = await placeOrder({}, { 'Idempotency-Key': 'old-key-1' }).expect(200);
+        expect(again.body.data.order.orderNumber).toBe(first.body.data.order.orderNumber);
+        await viewOrder(first.body.data.order.orderNumber, again.body.data.accessToken).expect(200);
+        // a different request with that key is still refused, exactly as before
+        const other = await placeOrder({ items: [{ ticketType: 'ADULT', quantity: 1 }] }, { 'Idempotency-Key': 'old-key-1' }).expect(409);
+        expect(other.body.error.code).toBe('IDEMPOTENCY_KEY_REUSED');
+        // an unknown short key creates nothing
+        await placeOrder({}, { 'Idempotency-Key': 'never-used-1' }).expect(400);
+        expect(await prisma.order.count()).toBe(1);
+      });
+
+      it('two requests with the same valid key at once still create exactly one order', async () => {
+        const key = 'simultaneous-key-0001';
+        const results = await Promise.all([placeOrder({}, { 'Idempotency-Key': key }), placeOrder({}, { 'Idempotency-Key': key }), placeOrder({}, { 'Idempotency-Key': key })]);
+        expect(results.map((r) => r.status).sort()).toEqual([200, 200, 201]);
+        expect(new Set(results.map((r) => r.body.data.order.orderNumber)).size).toBe(1);
+        expect(await prisma.order.count()).toBe(1);
+        expect(await prisma.ticket.count()).toBe(3);
+        expect(await prisma.payment.count()).toBe(1);
+      });
     });
 
     it('limits how fast one address can create orders', async () => {

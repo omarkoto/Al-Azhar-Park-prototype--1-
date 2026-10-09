@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
-import { PASSWORD, PORTAL, USERS, nav, openSection, signIn, signedInPage, toast } from './helpers'
+import { PASSWORD, PORTAL, USERS, isSignedIn, nav, openSection, signIn, signedInPage, toast } from './helpers'
 
 const row = (page: Page, text: string) => page.getByTestId('user-row').filter({ has: page.getByText(text, { exact: true }) })
 
@@ -8,7 +8,7 @@ async function canSignIn(browser: Browser, email: string): Promise<boolean> {
   const context = await browser.newContext()
   const page = await context.newPage()
   await signIn(page, email, PASSWORD)
-  const ok = await page.getByRole('heading', { name: /^Welcome/ }).waitFor({ timeout: 6000 }).then(() => true, () => false)
+  const ok = await isSignedIn(page)
   await context.close()
   return ok
 }

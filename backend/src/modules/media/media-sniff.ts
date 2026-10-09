@@ -83,12 +83,17 @@ function webpSize(b: Buffer): { width: number; height: number } | null {
 
 /**
  * A PDF is a program-like container. We cannot scan it fully, but we refuse the features that make a PDF run
- * code or launch things when opened: JavaScript, Launch actions and embedded files.
+ * code or launch things when opened: JavaScript, Launch actions and embedded files. This is a best-effort check of the file as
+ * written: features hidden inside a compressed object stream are not visible to it. Uploaded files are therefore also always
+ * served with `nosniff` and a sandboxing Content-Security-Policy (see MediaController), and only staff with media:write can upload.
  */
 export function pdfRiskyFeature(b: Buffer): string | null {
-  const text = b.toString('latin1');
+  const raw = b.toString('latin1');
+  // A PDF name may spell any character as #xx (/J#61vaScript IS /JavaScript to every PDF reader), so the names are looked for as
+  // written AND with those escapes resolved.
+  const resolved = raw.replace(/#([0-9a-fA-F]{2})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
   for (const token of ['/JavaScript', '/JS', '/Launch', '/EmbeddedFile', '/RichMedia']) {
-    if (text.includes(token)) return token.slice(1);
+    if (raw.includes(token) || resolved.includes(token)) return token.slice(1);
   }
   return null;
 }

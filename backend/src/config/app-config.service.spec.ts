@@ -1,6 +1,6 @@
 import { AppConfigService } from './app-config.service';
 
-const base = { DATABASE_URL: 'postgresql://u:p@localhost:5432/db' };
+const base = { NODE_ENV: 'development', DATABASE_URL: 'postgresql://u:p@localhost:5432/db' };
 
 describe('AppConfigService secrets', () => {
   it('falls back to the labelled dev secrets when the variables are missing OR empty (as in a fresh .env)', () => {
@@ -20,7 +20,7 @@ describe('AppConfigService secrets', () => {
 
   it('never allows the dev fallbacks in production', () => {
     expect(
-      () => new AppConfigService({ ...base, NODE_ENV: 'production', CORS_ORIGINS: 'https://example.com', JWT_ACCESS_SECRET: '', JWT_REFRESH_SECRET: '', TICKET_TOKEN_PEPPER: 'p'.repeat(40) }),
+      () => new AppConfigService({ ...base, NODE_ENV: 'production', CORS_ORIGINS: 'https://example.com', JWT_ACCESS_SECRET: '', JWT_REFRESH_SECRET: '', TICKET_TOKEN_PEPPER: 'Bn5Xc8Wq2Lk7Rv0Ty3ZmJ9dPs4GhUe1AoFi6NtYxVrQw' }),
     ).toThrow(/JWT_ACCESS_SECRET/);
   });
 });

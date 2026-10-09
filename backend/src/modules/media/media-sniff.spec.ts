@@ -42,6 +42,43 @@ describe('PDF safety', () => {
   });
 });
 
+describe('PDF safety: names spelled with #xx escapes', () => {
+  // a PDF reader resolves /J#61vaScript to /JavaScript, so the scan must too
+  it.each([
+    ['/J#61vaScript', 'JavaScript'],
+    ['/#4AavaScript', 'JavaScript'],
+    ['/#4A#61#76#61#53#63#72#69#70#74', 'JavaScript'],
+    ['/J#53', 'JS'],
+    ['/#4AS', 'JS'],
+    ['/L#61unch', 'Launch'],
+    ['/Embedd#65dFile', 'EmbeddedFile'],
+    ['/RichM#65dia', 'RichMedia'],
+    ['/J#61vaScr#69pt', 'JavaScript'],
+    ['/J#61v#61Script', 'JavaScript'],
+  ])('flags %s', (spelling, feature) => {
+    expect(pdfRiskyFeature(samples.pdf(`<< /S ${spelling} >>`))).toBe(feature);
+  });
+
+  it('resolves escapes written with upper- or lower-case hex digits, and only real feature names are flagged', () => {
+    expect(pdfRiskyFeature(samples.pdf('<< /S /J#6Fvascript >>'))).toBeNull(); // J + o + vascript is not JavaScript
+    expect(pdfRiskyFeature(samples.pdf('<< /S /Launc#68 /T /Launc#6a >>'))).toBe('Launch');
+    expect(pdfRiskyFeature(samples.pdf('<< /S /Launc#68 >>'))).toBe('Launch');
+    expect(pdfRiskyFeature(samples.pdf('<< /S /Embedded#46ile >>'))).toBe('EmbeddedFile');
+  });
+
+  it('does not mistake ordinary escapes and text for active content', () => {
+    expect(pdfRiskyFeature(samples.pdf('/Name /Menu#20Page#201 /Title (Price #41 and #5B#5D) /Color #FF00AA'))).toBeNull();
+    expect(pdfRiskyFeature(samples.pdf('/A#2FB (a slash escaped) /X #2F#4A (not a name start)'))).toBeNull();
+    expect(pdfRiskyFeature(samples.pdf('/Javaure /Laun /Embedded'))).toBeNull();
+    expect(pdfRiskyFeature(samples.pdf('/#23J#2361vaScript'))).toBeNull(); // the name is literally "#J#61vaScript"
+  });
+
+  it('still flags the plain spellings', () => {
+    expect(pdfRiskyFeature(samples.pdf('/JavaScript'))).toBe('JavaScript');
+    expect(pdfRiskyFeature(samples.pdf('/JS'))).toBe('JS');
+  });
+});
+
 describe('declared type and file names', () => {
   it('requires the declared Content-Type to agree with the bytes', () => {
     const png = sniffFile(samples.png())!;

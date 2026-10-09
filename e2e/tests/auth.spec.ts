@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { API, PORTAL, PASSWORD, USERS, nav, signIn, signedInPage } from './helpers'
+import { API, PORTAL, PASSWORD, USERS, expectSignedIn, nav, signIn, signedInPage } from './helpers'
 
 test.describe('login, session and navigation', () => {
   test('a wrong password is refused with a clear message and stays on the login page', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('login, session and navigation', () => {
   test('the session survives a page reload (restored from the refresh cookie, nothing stored in the page)', async ({ browser }) => {
     const { page, context } = await signedInPage(browser, USERS.content)
     await page.reload()
-    await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible()
+    await expectSignedIn(page)
     await expect(page).not.toHaveURL(/login/)
     // the access token is never written to browser storage
     const stored = await page.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }))

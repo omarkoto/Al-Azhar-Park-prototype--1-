@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Env, validateEnv } from './env.schema';
+import { DEV_JWT_ACCESS_SECRET, DEV_TICKET_PEPPER, DEV_TOKEN_HASH_SECRET } from './secret-quality';
 
 /** Typed, validated access to configuration. Inject this instead of reading process.env. */
 @Injectable()
@@ -19,11 +20,11 @@ export class AppConfigService {
    * clearly-labelled development value is used so a fresh checkout works; it must never be deployed.
    */
   get jwtAccessSecret(): string {
-    return this.env.JWT_ACCESS_SECRET || 'dev-only-access-secret-do-not-deploy-0123456789';
+    return this.env.JWT_ACCESS_SECRET || DEV_JWT_ACCESS_SECRET;
   }
 
   get tokenHashSecret(): string {
-    return this.env.JWT_REFRESH_SECRET || 'dev-only-refresh-secret-do-not-deploy-9876543210';
+    return this.env.JWT_REFRESH_SECRET || DEV_TOKEN_HASH_SECRET;
   }
 
   /** The payment provider in use: the configured one, else 'mock' outside production and 'none' in production. */
@@ -37,7 +38,7 @@ export class AppConfigService {
       const parsed = JSON.parse(this.env.TICKET_QR_KEYS) as Record<string, string>;
       return Object.fromEntries(Object.entries(parsed).map(([id, secret]) => [Number(id), secret]));
     }
-    return { 1: this.env.TICKET_TOKEN_PEPPER || 'dev-only-ticket-pepper-do-not-deploy-0123456789abcdef' };
+    return { 1: this.env.TICKET_TOKEN_PEPPER || DEV_TICKET_PEPPER };
   }
 
   get qrActiveKeyId(): number {

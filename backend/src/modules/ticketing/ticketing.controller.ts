@@ -10,7 +10,7 @@ import { CurrentUser, Public, RequestCtx, RequirePermissions } from '../auth/dec
 import { PaymentsService } from '../payments/payments.service';
 import { OrdersService } from './orders.service';
 import { PricesService } from './prices.service';
-import { PurchaseService } from './purchase.service';
+import { IDEMPOTENCY_KEY_MESSAGE, PurchaseService } from './purchase.service';
 import { TicketTypesService } from './ticket-types.service';
 import {
   CancelOrderDto, CatalogQueryDto, TicketPdfQueryDto, CreateOrderDto, CreatePriceDto, CreateTicketTypeDto, ListOrdersQueryDto, ListPricesQueryDto, MockCompleteDto, OrderIdsDto, QuoteDto, SetPriceActiveDto,
@@ -60,7 +60,8 @@ export class PublicTicketingController {
     @RequestCtx() ctx: RequestContext,
     @Res({ passthrough: true }) res: Response,
   ) {
-    if (key !== undefined && !/^[A-Za-z0-9_-]{8,100}$/.test(key)) throw new AppException('INVALID_IDEMPOTENCY_KEY', 'Idempotency-Key must be 8–100 letters, digits, "-" or "_".', 400);
+    // shape only: keys of 8–15 characters (accepted before Phase 11) can still REPLAY an order they created; a new order needs 16+ (see PurchaseService)
+    if (key !== undefined && !/^[A-Za-z0-9_-]{8,100}$/.test(key)) throw new AppException('INVALID_IDEMPOTENCY_KEY', IDEMPOTENCY_KEY_MESSAGE, 400);
     const { replayed, ...created } = await this.purchase.createOrder(dto, key, ctx);
     res.status(replayed ? 200 : 201);
     return created;

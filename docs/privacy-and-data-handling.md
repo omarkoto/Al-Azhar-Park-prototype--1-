@@ -28,8 +28,8 @@
 - Access follows the existing analytics permissions: `analytics:read` (all, including money), `analytics:operations` (entry and ticket states, no money), `analytics:content` (event statistics). Every export is audited (`analytics.exported`) with the report, period and filters, never the data. See [analytics.md](analytics.md).
 
 ## Logging and audit
-- Application logs redact passwords, tokens, cookies and `Authorization` headers (`REDACTED_PATHS`).
-- `audit_logs` records who did what (including price changes, manual payments, cancellations, privacy actions). It is **append-only by database trigger**.
+- Application logs redact passwords, tokens, cookies and `Authorization` headers (`REDACTED_PATHS`). Phase 11: request logs record only the request id, method, **path (never the query string, so search terms such as a customer's e-mail address or phone number are not written)** and status; request headers and bodies are not logged at all. Tested in `logger.config.spec.ts`.
+- `audit_logs` records who did what (including price changes, manual payments, cancellations, privacy actions). It is **append-only by database trigger** (no UPDATE, DELETE or, since Phase 11, TRUNCATE; the same holds for `ticket_scans`).
 - `data_requests` records every access / deletion / anonymisation request and who handled it.
 
 ## Retention, deletion and anonymisation (mechanism)

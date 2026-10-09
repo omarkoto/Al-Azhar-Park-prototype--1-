@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { secretProblem } from './secret-quality';
 
 const bool = z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1');
 
@@ -13,7 +14,13 @@ const postgresUrl = z
  */
 export const envSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    /**
+     * No default, on purpose: a server started without it must not quietly become a development server (mock payments,
+     * public development secrets). Set it to production, or development / test for local work.
+     */
+    NODE_ENV: z.enum(['development', 'test', 'production'], {
+      error: (issue) => (issue.input === undefined ? 'is required: set NODE_ENV to production, development or test (it has no default)' : 'must be one of: production, development, test'),
+    }),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     HOST: z.string().min(1).default('0.0.0.0'),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
@@ -48,13 +55,14 @@ export const envSchema = z
     RATE_LIMIT_TTL_SECONDS: z.coerce.number().int().min(1).default(60),
     AUTH_RATE_LIMIT_MULTIPLIER: z.coerce.number().int().min(1).max(100).default(1),
     RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
-    /** gate scans per minute per address: a busy gate scans a few tickets a second, so this is higher than the general limit */
     /** the longest period a report may cover, so one request cannot ask the database for years of data */
     ANALYTICS_MAX_RANGE_DAYS: z.coerce.number().int().min(1).max(3660).default(366),
     /** the most rows one CSV export may hold */
     ANALYTICS_EXPORT_MAX_ROWS: z.coerce.number().int().min(100).max(1_000_000).default(100_000),
+    /** gate scans per minute per address: a busy gate scans a few tickets a second, so this is higher than the general limit */
     SCAN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(5000).default(300),
-    SWAGGER_ENABLED: bool.default(true),
+    /** API documentation. Unset: on outside production, OFF in production (switch it on there explicitly with SWAGGER_ENABLED=true). */
+    SWAGGER_ENABLED: bool.optional(),
 
     // Secrets — used from Phase 2 onward; mandatory (and strong) in production.
     JWT_ACCESS_SECRET: z.string().optional(),
@@ -122,10 +130,34 @@ export const envSchema = z
       const value = env[key];
       if (!value || value.length < 32) {
         ctx.addIssue({ code: 'custom', path: [key], message: 'is required in production (min 32 characters)' });
+      } else {
+        const problem = secretProblem(value);
+        if (problem) ctx.addIssue({ code: 'custom', path: [key], message: `${problem}` });
       }
     }
-    if (env.JWT_ACCESS_SECRET && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
+    // each purpose gets its own secret: one leaked or guessed value must not open another door
+    const access = env.JWT_ACCESS_SECRET;
+    const refresh = env.JWT_REFRESH_SECRET;
+    const pepper = env.TICKET_TOKEN_PEPPER;
+    let qrKeys: Record<string, string> = {};
+    try {
+      qrKeys = env.TICKET_QR_KEYS ? (JSON.parse(env.TICKET_QR_KEYS) as Record<string, string>) : {};
+    } catch {
+      qrKeys = {}; // already reported above
+    }
+    if (access && refresh && access === refresh) {
       ctx.addIssue({ code: 'custom', path: ['JWT_REFRESH_SECRET'], message: 'must differ from JWT_ACCESS_SECRET' });
+    }
+    // the ticket pepper is also QR key 1 when TICKET_QR_KEYS is not set, so a QR key may equal the pepper; nothing else may be shared
+    for (const [id, secret] of Object.entries(qrKeys)) {
+      const problem = typeof secret === 'string' ? secretProblem(secret) : null;
+      if (problem) ctx.addIssue({ code: 'custom', path: ['TICKET_QR_KEYS'], message: `key ${id} ${problem}` });
+      if (secret === access || secret === refresh) ctx.addIssue({ code: 'custom', path: ['TICKET_QR_KEYS'], message: `key ${id} must differ from the JWT secrets` });
+    }
+    const qrValues = Object.values(qrKeys);
+    if (new Set(qrValues).size !== qrValues.length) ctx.addIssue({ code: 'custom', path: ['TICKET_QR_KEYS'], message: 'every key must have its own secret' });
+    if (pepper && (pepper === access || pepper === refresh)) {
+      ctx.addIssue({ code: 'custom', path: ['TICKET_TOKEN_PEPPER'], message: 'must differ from the JWT secrets' });
     }
     if (env.EMAIL_PROVIDER === 'smtp' && (!env.EMAIL_SMTP_URL || !env.EMAIL_FROM)) {
       ctx.addIssue({ code: 'custom', path: ['EMAIL_PROVIDER'], message: 'smtp needs EMAIL_SMTP_URL and EMAIL_FROM' });
@@ -150,7 +182,8 @@ export const envSchema = z
     if (env.DATABASE_URL.includes('CHANGE_ME')) {
       ctx.addIssue({ code: 'custom', path: ['DATABASE_URL'], message: 'still contains the CHANGE_ME placeholder password' });
     }
-  });
+  })
+  .transform((env) => ({ ...env, SWAGGER_ENABLED: env.SWAGGER_ENABLED ?? env.NODE_ENV !== 'production' }));
 
 export type Env = z.infer<typeof envSchema>;
 
