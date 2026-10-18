@@ -14,6 +14,7 @@ export function PricesPage() {
   const current = useLoad<CurrentPrices>('/prices/current')
   const history = useLoad<PriceRowData[]>('/prices')
   const [adding, setAdding] = useState(false)
+  const [editing, setEditing] = useState<EditTarget | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
   const canWrite = can('pricing:write')
@@ -44,13 +45,13 @@ export function PricesPage() {
   const c = current.data
   return (
     <div className="space-y-6">
-      <PageHeader title="Ticket prices" description="What each ticket costs, by audience and by weekday (Sunday–Thursday) or weekend (Friday–Saturday). Prices are history: to change one, add a new price from a future date. The old price ends the day before, and orders already placed keep the price they paid." />
+      <PageHeader title="Ticket prices" description="What each ticket costs, by audience and by weekday (Sunday–Thursday) or weekend (Friday–Saturday). Click any price to change it. Orders already placed keep the price they paid, and every change is kept in the history." />
       {canWrite && (
         <div>
           <Button onClick={() => setAdding(true)}>Add a new price</Button>
         </div>
       )}
-      <Card title="Visitors pay today" description="The price that applies now, for the next weekday and the next weekend day.">
+      <Card title="Visitors pay today" description={canWrite ? 'The price that applies now. Click a price to change it — the new price starts today by default and the old one is kept in the history below.' : 'The price that applies now, for the next weekday and the next weekend day.'}>
         {!c && !current.error && <Spinner />}
         {current.error && <Notice tone="error">{current.error}</Notice>}
         {c && (
@@ -64,7 +65,7 @@ export function PricesPage() {
                   <th className="py-2">Weekend (Fri–Sat)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-sand-100">
                 {c.audiences.flatMap((a) =>
                   c.types.map((t) => {
                     const cell = c.cells.find((x) => x.audienceId === a.id && x.ticketTypeId === t.id)
@@ -74,8 +75,12 @@ export function PricesPage() {
                         <td className="py-2 pr-3">
                           {t.nameEn} {!t.isActive && <Badge>off</Badge>}
                         </td>
-                        <td className="py-2 pr-3 font-medium">{money(cell?.weekdayMinor)}</td>
-                        <td className="py-2 font-medium">{money(cell?.weekendMinor)}</td>
+                        <td className="py-2 pr-3 font-medium">
+                          <PriceCell minor={cell?.weekdayMinor} canEdit={canWrite && t.isActive} label={`${t.nameEn}, ${a.nameEn}, weekday`} onEdit={() => setEditing({ type: t, audience: a, days: 'WEEKDAY', currentMinor: cell?.weekdayMinor ?? null })} />
+                        </td>
+                        <td className="py-2 font-medium">
+                          <PriceCell minor={cell?.weekendMinor} canEdit={canWrite && t.isActive} label={`${t.nameEn}, ${a.nameEn}, weekend`} onEdit={() => setEditing({ type: t, audience: a, days: 'WEEKEND', currentMinor: cell?.weekendMinor ?? null })} />
+                        </td>
                       </tr>
                     )
                   }),
@@ -116,7 +121,7 @@ export function PricesPage() {
                   {canWrite && <th className="py-2" />}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-sand-100">
                 {rows.map((p) => (
                   <tr key={p.id} data-testid="price-row">
                     <td className="py-2 pr-3">
@@ -149,6 +154,18 @@ export function PricesPage() {
           </div>
         )}
       </Card>
+      {editing && c && history.data && (
+        <EditPriceModal
+          target={editing}
+          today={c.today}
+          history={history.data}
+          onClose={() => setEditing(null)}
+          onSaved={async () => {
+            setEditing(null)
+            await reloadAll()
+          }}
+        />
+      )}
       {adding && c && (
         <PriceModal
           today={c.today}
@@ -233,6 +250,84 @@ function PriceModal({ today, onClose, onSaved }: { today: string; onClose: () =>
           </Button>
           <Button onClick={() => void save()} busy={busy}>
             Add price
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+interface EditTarget {
+  type: { id: string; nameEn: string }
+  audience: { id: string; nameEn: string }
+  days: 'WEEKDAY' | 'WEEKEND'
+  currentMinor: number | null
+}
+
+function PriceCell({ minor, canEdit, label, onEdit }: { minor: number | null | undefined; canEdit: boolean; label: string; onEdit: () => void }) {
+  if (!canEdit) return <>{money(minor)}</>
+  return (
+    <button onClick={onEdit} aria-label={`Change price: ${label}`} className="group inline-flex items-center gap-2 rounded-full border border-sand-200 bg-sand-50 px-3 py-1 font-semibold text-teal-900 transition-colors hover:border-gold-500 hover:bg-gold-100/60">
+      {money(minor)}
+      <span className="text-xs font-medium text-gold-700 group-hover:underline">Edit</span>
+    </button>
+  )
+}
+
+/**
+ * Changing a price in place, from the visitor's point of view. Underneath, the park keeps price history: the old price is
+ * closed the day before the new one starts (or switched off if it started on the same day), so past orders never change.
+ */
+function EditPriceModal({ target, today, history, onClose, onSaved }: { target: EditTarget; today: string; history: PriceRowData[]; onClose: () => void; onSaved: () => Promise<void> }) {
+  const toast = useToast()
+  const [amount, setAmount] = useState(target.currentMinor === null ? '' : String(target.currentMinor / 100))
+  const [validFrom, setValidFrom] = useState(today)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    const minor = parseEgp(amount)
+    if (minor === null) return setError('Enter a price above 0, for example 50 or 62.50.')
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(validFrom) || validFrom < today) return setError('The new price must start today or later.')
+    if (minor === target.currentMinor && validFrom === today) return setError('That is already the current price.')
+    setBusy(true)
+    setError(null)
+    try {
+      // a price that starts on or after the new start date cannot be "closed the day before", so it is switched off first
+      const clashing = history.filter(
+        (p) => p.ticketTypeId === target.type.id && p.audienceId === target.audience.id && p.days === target.days && p.isActive && p.status !== 'ended' && p.validFrom >= validFrom,
+      )
+      for (const p of clashing) await api.put(`/prices/${p.id}/active`, { isActive: false })
+      await api.post('/prices', { ticketTypeId: target.type.id, audienceId: target.audience.id, days: target.days, amountMinor: minor, validFrom, notes: null })
+      toast('success', `Price updated to ${money(minor)}.`)
+      await onSaved()
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title="Change ticket price" onClose={onClose}>
+      <div className="space-y-4">
+        <p className="text-sm text-stone-600">
+          {target.type.nameEn} · {target.audience.nameEn} · {DAYS_LABEL[target.days]}
+          <br />
+          Now: <strong className="text-teal-900">{money(target.currentMinor)}</strong>
+        </p>
+        {error && <Notice tone="error">{error}</Notice>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextInput label="New price (EGP)" inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(e.target.value)} hint="For example 50 or 62.50." />
+          <TextInput label="Starts on" type="date" min={today} value={validFrom} onChange={(e) => setValidFrom(e.target.value)} />
+        </div>
+        <Notice tone="info">Orders already placed keep the price they paid. The old price stays in the history below.</Notice>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={() => void save()} busy={busy}>
+            Save price
           </Button>
         </div>
       </div>

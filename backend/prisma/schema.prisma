@@ -107,6 +107,65 @@ enum SpecialHoursKind {
 }
 
 /// DRAFT: portal only. COMING_SOON / PUBLISHED: public. CANCELLED / ARCHIVED: hidden from the public.
+// ───────────────────────── journal (articles on the website) ─────────────────────────
+
+/// DRAFT is portal-only, PUBLISHED is on the website, ARCHIVED is hidden again (and can be restored as a draft).
+enum JournalStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("journal_status")
+}
+
+model JournalArticle {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug               String        @unique
+  titleEn            String        @map("title_en")
+  titleAr            String        @map("title_ar")
+  /// the one tag shown on the card, e.g. "History" / "تاريخ"
+  tagEn              String        @map("tag_en")
+  tagAr              String        @map("tag_ar")
+  /// shown on the card
+  shortDescriptionEn String        @map("short_description_en")
+  shortDescriptionAr String        @map("short_description_ar")
+  /// the full article, opened with "Read more" (plain text, a blank line starts a new paragraph)
+  bodyEn             String        @map("body_en")
+  bodyAr             String        @map("body_ar")
+  /// optional wording shown on the card instead of a date, e.g. "2006", "1990s", "Ongoing"
+  dateLabelEn        String?       @map("date_label_en")
+  dateLabelAr        String?       @map("date_label_ar")
+  coverMediaId       String?       @map("cover_media_id") @db.Uuid
+  status             JournalStatus @default(DRAFT)
+  isFeatured         Boolean       @default(false) @map("is_featured")
+  publishedAt        DateTime?     @map("published_at") @db.Timestamptz(3)
+  createdById        String?       @map("created_by_id") @db.Uuid
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime?     @map("deleted_at") @db.Timestamptz(3)
+
+  coverMedia Media?               @relation("JournalCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  gallery    JournalArticleMedia[]
+
+  @@index([status, publishedAt], map: "ix_journal_status_published")
+  @@map("journal_articles")
+}
+
+model JournalArticleMedia {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  articleId String  @map("article_id") @db.Uuid
+  mediaId   String  @map("media_id") @db.Uuid
+  sortOrder Int     @default(0) @map("sort_order")
+  captionEn String? @map("caption_en")
+  captionAr String? @map("caption_ar")
+
+  article JournalArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  media   Media          @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@unique([articleId, mediaId])
+  @@map("journal_article_media")
+}
+
 enum EventStatus {
   DRAFT
   COMING_SOON
@@ -920,6 +979,8 @@ model Media {
   restaurantGallery RestaurantMedia[]
   menuPdfs          Menu[]            @relation("MenuPdf")
   menuItemImages    MenuItem[]        @relation("MenuItemImage")
+  journalCovers     JournalArticle[]  @relation("JournalCover")
+  journalGallery    JournalArticleMedia[]
 
   @@map("media")
 }

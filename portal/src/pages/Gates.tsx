@@ -43,7 +43,7 @@ export function GatesPage() {
       {data && activeCount === 0 && <Notice tone="warn">No gate is switched on, so nobody can scan tickets right now.</Notice>}
       <Card>
         {data && data.length === 0 && <p className="text-sm text-stone-500">No gates yet.</p>}
-        <ul className="divide-y divide-stone-100" data-testid="gate-list">
+        <ul className="divide-y divide-sand-100" data-testid="gate-list">
           {data?.map((g) => (
             <li key={g.id} data-testid="gate-row" data-active={g.isActive ? 'true' : 'false'} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">

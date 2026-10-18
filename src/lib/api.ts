@@ -13,6 +13,16 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   return body.data
 }
 
+export async function apiPost(path: string, body: unknown): Promise<void> {
+  if (!API_URL) throw new Error('VITE_API_URL is not configured')
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`POST ${path} failed with ${res.status}`)
+}
+
 /** Uploaded files come back as site-relative paths ("/api/v1/media/file/..."); put the API's own address in front. */
 export function assetUrl(path: string): string {
   if (!API_URL || !path.startsWith('/')) return path

@@ -130,7 +130,7 @@ test.describe.serial('media library and restaurants', () => {
     // only the restaurant that has an Instagram address gets a Reserve button; the built-in ones have none and show none
     await expect(site.getByRole('link', { name: 'Reserve a table' })).toHaveCount(1)
     await site.goto(`${SITE}/restaurants/hilltop`)
-    await expect(site.getByRole('heading', { name: 'Hill-top Restaurant' }).first()).toBeVisible({ timeout: 15_000 })
+    await expect(site.getByRole('heading', { name: 'Hill-Top Restaurant' }).first()).toBeVisible({ timeout: 15_000 })
     await expect(site.getByRole('link', { name: 'Reserve a table' })).toHaveCount(0)
     await expect(site.getByRole('button', { name: 'Reserve a table' })).toHaveCount(0)
     await site.goto(`${SITE}/restaurants`)
@@ -180,14 +180,14 @@ test.describe.serial('media library and restaurants', () => {
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(toast(page, 'Saved.')).toBeVisible()
     site = await freshSitePage(browser, '/restaurants')
-    await expect(site.getByRole('heading', { name: 'Hill-top Restaurant' })).toBeVisible({ timeout: 15_000 })
+    await expect(site.getByRole('heading', { name: 'Hill-Top Restaurant' })).toBeVisible({ timeout: 15_000 })
     await expect(site.getByRole('heading', { name: 'Rooftop Grill' })).toHaveCount(0)
     await site.context().close()
   })
 
   test('a built-in restaurant can be edited in the portal and the website shows the change', async ({ browser }) => {
     await openSection(page, 'Restaurants')
-    await page.getByRole('link', { name: 'Open Hill-top Restaurant' }).click()
+    await page.getByRole('link', { name: 'Open Hill-Top Restaurant' }).click()
     await page.getByLabel('Tagline (English)').fill('Fatimid-style dining (edited in the browser test)')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(toast(page, 'Saved.')).toBeVisible()
@@ -200,7 +200,7 @@ test.describe.serial('media library and restaurants', () => {
 
   test('clean up: remove the test restaurant, restore the tagline, delete the test files', async () => {
     await openSection(page, 'Restaurants')
-    await page.getByRole('link', { name: 'Open Hill-top Restaurant' }).click()
+    await page.getByRole('link', { name: 'Open Hill-Top Restaurant' }).click()
     await page.getByLabel('Tagline (English)').fill('Fatimid-style dining above Old Cairo')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(toast(page, 'Saved.')).toBeVisible()

@@ -51,7 +51,7 @@ test.describe.serial('staff accounts: invite, roles, activation', () => {
   })
 
   test('invites a new user with a role; a duplicate e-mail is refused', async () => {
-    await page.getByRole('button', { name: 'Invite user' }).click()
+    await page.getByRole('button', { name: 'Add account' }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByLabel('Full name').fill(invited.name)
     await dialog.getByLabel('E-mail').fill(invited.email)
@@ -62,7 +62,7 @@ test.describe.serial('staff accounts: invite, roles, activation', () => {
     await expect(row(page, invited.email)).toContainText('Active')
     await expect(row(page, invited.email)).toContainText('Never')
 
-    await page.getByRole('button', { name: 'Invite user' }).click()
+    await page.getByRole('button', { name: 'Add account' }).click()
     const again = page.getByRole('dialog')
     await again.getByLabel('Full name').fill('Someone Else')
     await again.getByLabel('E-mail').fill(invited.email)
@@ -73,7 +73,7 @@ test.describe.serial('staff accounts: invite, roles, activation', () => {
   })
 
   test('an administrator cannot hand out a role more powerful than their own', async () => {
-    await page.getByRole('button', { name: 'Invite user' }).click()
+    await page.getByRole('button', { name: 'Add account' }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog.getByRole('checkbox', { name: /Super administrator/ })).toBeDisabled()
     await expect(dialog.getByText(/You cannot grant this role/)).toBeVisible()

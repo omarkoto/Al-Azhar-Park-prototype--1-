@@ -9,7 +9,7 @@ const CODES: ScanCode[] = ['ACCESS_GRANTED', 'INVALID_QR', 'INVALID_SIGNATURE', 
 const gate = { id: 'g1', code: 'MAIN', nameEn: 'Main entrance', nameAr: 'المدخل الرئيسي' }
 const outcome = (result: ScanCode, over: Partial<ScanOutcome> = {}): ScanOutcome => ({
   result, granted: result === 'ACCESS_GRANTED', message: '', scanId: 's1', scannedAt: '2026-10-07T10:00:00Z', gate,
-  ticket: { ref: 'TKT-8F3K2LQ7ZP', visitDate: '2026-10-07', typeNameEn: 'Adult', typeNameAr: 'بالغ', audienceNameEn: 'Egyptian / resident', audienceNameAr: 'مصري' }, ...over,
+  ticket: { ref: 'TKT-8F3K2LQ7ZP', visitDate: '2026-10-07', typeNameEn: 'Adult', typeNameAr: 'بالغ', audienceNameEn: 'Egyptian', audienceNameAr: 'مصري' }, ...over,
 })
 
 describe('what the operator sees', () => {

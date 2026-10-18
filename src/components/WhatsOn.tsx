@@ -31,7 +31,7 @@ export function WhatsOn() {
   if (nothing && !live) return null
 
   return (
-    <section className="relative overflow-hidden border-b border-ink-900/10 py-16 md:py-24" data-testid="whats-on">
+    <section className="relative overflow-hidden border-b border-ink-900/10 py-10 md:py-14" data-testid="whats-on">
       <LatticePattern id="whats-on-lattice" className="text-teal-900/[0.035]" />
       <Container className="relative">
         <Reveal className="max-w-2xl">
@@ -53,27 +53,25 @@ export function WhatsOn() {
             </ButtonLink>
           </Reveal>
         ) : (
-          <>
-            {published.length > 0 ? <Group title={t('whatsOnUpcoming')} events={published} testId="events-published" /> : null}
-            {soon.length > 0 ? <Group title={t('whatsOnSoon')} events={soon} testId="events-coming-soon" /> : null}
-          </>
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {published.length > 0 ? <Group events={published} testId="events-published" /> : null}
+            {soon.length > 0 ? <Group events={soon} testId="events-coming-soon" /> : null}
+          </div>
         )}
       </Container>
     </section>
   )
 }
 
-function Group({ title, events, testId }: { title: string; events: ComingSoonEvent[]; testId: string }) {
+/** The published and coming-soon events share one grid, side by side; each card carries its own status badge. */
+function Group({ events, testId }: { events: ComingSoonEvent[]; testId: string }) {
   return (
-    <div className="mt-12" data-testid={testId}>
-      <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">{title}</h3>
-      <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map((e, i) => (
-          <Reveal key={e.slug} delay={Math.min(i, 5) * 0.06}>
-            <EventCard event={e} />
-          </Reveal>
-        ))}
-      </div>
+    <div className="contents" data-testid={testId}>
+      {events.map((e, i) => (
+        <Reveal key={e.slug} delay={Math.min(i, 5) * 0.06}>
+          <EventCard event={e} />
+        </Reveal>
+      ))}
     </div>
   )
 }

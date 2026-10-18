@@ -15,7 +15,7 @@ Phase 1 delivered the data model and its guarantees. Online purchase, pricing an
 A pending online order **expires** after `orders.pendingExpiryMinutes` (system setting, default 30): the order becomes `EXPIRED` and its tickets `EXPIRED`.
 
 ### Counter-sale screen (Phase 7/9)
-Deliberately minimal for use under time pressure: **Adult / Child · Egyptian-resident / Visitor · visit date · quantity → total → Cash → Generate → Print/download.**
+Deliberately minimal for use under time pressure: **Adult / Child · Egyptian / Non-Egyptian · visit date · quantity → total → Cash → Generate → Print/download.**
 One server transaction: price lookup → order (`COUNTER_SALE`, `PAID`) → cash payment → `VALID` tickets → audit entry.
 Needs only the `counter-sales:create` permission, which `TICKET_STAFF` has. It does **not** give access to prices, other orders or settings (there are no refunds). Marking an *existing* order as paid is a different permission (`payments:record_cash`, held by ADMIN/OPERATIONS only). Every manual payment is written to the audit log.
 

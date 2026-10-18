@@ -140,6 +140,14 @@ export interface SiteContent {
     ctaSecondary: string
   }
   stats: StatItem[]
+  darbSection: {
+    eyebrow: string
+    title: string
+    body: string
+    stats: StatItem[]
+    cta: string
+    imageAlt: string
+  }
   ticketsSection: {
     eyebrow: string
     title: string
@@ -225,18 +233,13 @@ export interface SiteContent {
     timeline: TimelineEvent[]
     recognitionTitle: string
     recognitionBody: string
+    beforeLabel: string
+    afterLabel: string
+    numbers: StatItem[]
+    design: { eyebrow: string; title: string; lead: string; items: { title: string; body: string }[] }
     heritage: {
       greenLung: { eyebrow: string; quote: string; body: string }
       history: { eyebrow: string; title: string; body: string; facts: { value: string; label: string }[] }
-      wall: {
-        eyebrow: string
-        title: string
-        lead: string
-        builderLabel: string
-        materialLabel: string
-        photoLabel: string
-        layers: { year: string; builder: string; material: string; title: string; body: string; caption: string }[]
-      }
     }
   }
   restaurants: {
@@ -316,6 +319,8 @@ export interface SiteContent {
     formSubmit: string
     formSuccess: string
     formNote: string
+    formSending: string
+    formError: string
     faxLabel: string
     fax: string
     mapTitle: string

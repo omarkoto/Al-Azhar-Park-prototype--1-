@@ -357,7 +357,7 @@ export function AnalyticsSalesPage() {
           />
           <div className="grid gap-6 lg:grid-cols-2">
             <ShareBars title="Tickets by type" items={sliceItems(data.byTicketType)} unit="tickets" format={count} />
-            <ShareBars title="Tickets by audience" description="Egyptian / resident and non-resident visitors." items={sliceItems(data.byAudience)} unit="tickets" format={count} />
+            <ShareBars title="Tickets by audience" description="Egyptian and Non-Egyptian visitors." items={sliceItems(data.byAudience)} unit="tickets" format={count} />
           </div>
           <Card title="Sales by ticket type, audience and weekday / weekend">
             <DataTable

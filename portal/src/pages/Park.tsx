@@ -68,7 +68,7 @@ export function ParkPage() {
         <fieldset disabled={!canWrite || busy} className="space-y-4">
           {form.stats.length === 0 && <p className="text-sm text-stone-500">No statistics. The website will use its built-in ones.</p>}
           {form.stats.map((s, i) => (
-            <div key={i} className="grid gap-3 rounded-lg border border-stone-200 p-3 md:grid-cols-[7rem_1fr_1fr_auto] md:items-end">
+            <div key={i} className="grid gap-3 rounded-lg border border-sand-200 p-3 md:grid-cols-[7rem_1fr_1fr_auto] md:items-end">
               <TextInput label="Value" value={s.value} onChange={(e) => setStat(i, { value: e.target.value })} error={errors[`stats.${i}.value`]} maxLength={20} />
               <TextInput label="Label (English)" value={s.labelEn} onChange={(e) => setStat(i, { labelEn: e.target.value })} error={errors[`stats.${i}.labelEn`]} />
               <TextInput label="Label (Arabic)" rtl value={s.labelAr} onChange={(e) => setStat(i, { labelAr: e.target.value })} error={errors[`stats.${i}.labelAr`]} />

@@ -22,6 +22,7 @@ import { PageHero } from '../components/PageHero'
 import heroImage from '../assets/images/plan-hero-promenade-dusk.webp'
 import { AddToCalendar } from '../components/AddToCalendar'
 import { ArchMap } from '../components/plan/ArchMap'
+import { StopDialog } from '../components/plan/StopDialog'
 import { BookingNotes, DayNotice } from '../components/BookingNotes'
 
 const MOODS: Mood[] = ['calm', 'scenic', 'foodie', 'culture']
@@ -53,6 +54,7 @@ export function Plan() {
   const [hours, setHours] = useState<2 | 4 | 6>(4)
   const [mood, setMood] = useState<Mood>('scenic')
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [added, setAdded] = useState(false)
 
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDate(1)
@@ -159,8 +161,9 @@ export function Plan() {
           {/* Map + actions */}
           <div className="order-1 mt-8 min-w-0 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-6">
             <Reveal>
-              <ArchMap plan={plan} lang={lang} activeId={activeId} onActive={setActiveId} />
+              <ArchMap plan={plan} lang={lang} activeId={activeId} onActive={setActiveId} onSelect={setSelectedId} />
             </Reveal>
+            <StopDialog plan={plan} lang={lang} copy={copy} selectedId={selectedId} fmt={fmt} onSelect={setSelectedId} />
 
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-teal-800">
               <span>{copy.stopsCount(plan.stops.length)}</span>

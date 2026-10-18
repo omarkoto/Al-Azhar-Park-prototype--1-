@@ -21,6 +21,7 @@ import { ScansModule } from './modules/scans/scans.module';
 import { isScanRoute } from './modules/scans/scan-route';
 import { TicketingModule } from './modules/ticketing/ticketing.module';
 import { EventsModule } from './modules/events/events.module';
+import { JournalModule } from './modules/journal/journal.module';
 import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 import { ParkModule } from './modules/park/park.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -51,6 +52,7 @@ import { UsersModule } from './modules/users/users.module';
     MediaModule,
     RestaurantsModule,
     EventsModule,
+    JournalModule,
     TicketingModule,
     ScansModule,
     OperationsModule,

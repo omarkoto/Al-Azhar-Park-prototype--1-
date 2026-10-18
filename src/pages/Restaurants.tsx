@@ -27,6 +27,7 @@ export function Restaurants() {
         lead={restaurants.lead}
         image={restaurantsHero}
         imageAlt={altText('restaurantsHero')}
+        clear
       />
 
       <div>

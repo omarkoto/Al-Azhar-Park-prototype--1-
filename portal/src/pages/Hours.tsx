@@ -68,7 +68,7 @@ function WeeklyHours() {
       }
     >
       {!canWrite && <Notice tone="info">You can view the hours but not change them.</Notice>}
-      <div className="divide-y divide-stone-100">
+      <div className="divide-y divide-sand-100">
         {days.map((d, i) => (
           <div key={d.dayOfWeek} className="grid items-end gap-3 py-3 sm:grid-cols-[8rem_1fr_1fr_auto]">
             <p className="text-sm font-medium text-stone-900">{DAY_NAMES[d.dayOfWeek]}</p>
@@ -135,7 +135,7 @@ function SpecialHoursList() {
       {error && <Notice tone="error">{error}</Notice>}
       {data && data.length === 0 && <p className="text-sm text-stone-500">Nothing here. The weekly hours apply every day.</p>}
       {data && data.length > 0 && (
-        <ul className="divide-y divide-stone-100">
+        <ul className="divide-y divide-sand-100">
           {data.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">

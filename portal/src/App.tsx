@@ -9,6 +9,7 @@ import { RolesPage } from './pages/Roles'
 import { UsersPage } from './pages/Users'
 import { MediaPage } from './pages/Media'
 import { EventEditor, EventsPage } from './pages/Events'
+import { JournalEditor, JournalPage } from './pages/Journal'
 import { OrdersPage } from './pages/Orders'
 import { GatesPage } from './pages/Gates'
 import { ScannerPage } from './pages/Scanner'
@@ -33,6 +34,8 @@ export default function App() {
         <Route path="restaurants/:id" element={<RequirePermission permission="restaurants:read"><RestaurantEditor /></RequirePermission>} />
         <Route path="events" element={<RequirePermission permission="events:read"><EventsPage /></RequirePermission>} />
         <Route path="events/:id" element={<RequirePermission permission="events:read"><EventEditor /></RequirePermission>} />
+        <Route path="journal" element={<RequirePermission permission="journal:read"><JournalPage /></RequirePermission>} />
+        <Route path="journal/:id" element={<RequirePermission permission="journal:read"><JournalEditor /></RequirePermission>} />
         <Route path="venues" element={<RequirePermission permission="venues:read"><VenuesPage /></RequirePermission>} />
         <Route path="orders" element={<RequirePermission permission="orders:read"><OrdersPage /></RequirePermission>} />
         <Route path="ticket-types" element={<RequirePermission permission="ticket-types:read"><TicketTypesPage /></RequirePermission>} />

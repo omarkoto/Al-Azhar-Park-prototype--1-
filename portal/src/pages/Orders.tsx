@@ -86,7 +86,7 @@ export function OrdersPage() {
                   <th className="py-2" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-sand-100">
                 {rows.map((o) => (
                   <tr key={o.id} data-testid="order-row">
                     <td className="py-2 pr-3 font-medium text-stone-900">
@@ -222,7 +222,7 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
                 <th className="py-1 text-right">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-sand-100">
               {o.items.map((i) => (
                 <tr key={i.id}>
                   <td className="py-1.5 pr-3">
@@ -263,7 +263,7 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
             <div>
               <p className="mb-1 text-xs uppercase text-stone-500">Payments</p>
               {o.payments.length === 0 ? <p className="text-sm text-stone-500">None.</p> : (
-                <ul className="divide-y divide-stone-100 text-sm">
+                <ul className="divide-y divide-sand-100 text-sm">
                   {o.payments.map((p) => (
                     <li key={p.id} className="flex flex-wrap justify-between gap-2 py-1.5">
                       <span>{p.provider} · {p.method.toLowerCase()}</span>
@@ -278,7 +278,7 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
           {o.tickets && o.tickets.length > 0 && (
             <div>
               <p className="mb-1 text-xs uppercase text-stone-500">Tickets</p>
-              <ul className="divide-y divide-stone-100 text-sm" data-testid="order-tickets">
+              <ul className="divide-y divide-sand-100 text-sm" data-testid="order-tickets">
                 {o.tickets.map((t) => (
                   <li key={t.ref} className="flex flex-wrap items-center justify-between gap-2 py-1.5" data-testid="order-ticket">
                     <span className="font-mono text-xs">{t.ref}</span>
@@ -321,7 +321,7 @@ function OrderModal({ id, onClose, onChanged }: { id: string; onClose: () => voi
               </div>
               {o.emails && o.emails.length === 0 && <p className="text-sm text-stone-500">No e-mail has been sent for this order.</p>}
               {o.emails && o.emails.length > 0 && (
-                <ul className="divide-y divide-stone-100 text-sm">
+                <ul className="divide-y divide-sand-100 text-sm">
                   {o.emails.map((e) => (
                     <li key={e.id} className="space-y-0.5 py-1.5" data-testid="email-row">
                       <div className="flex flex-wrap items-center justify-between gap-2">

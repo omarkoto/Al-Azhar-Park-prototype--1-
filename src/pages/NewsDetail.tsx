@@ -1,6 +1,8 @@
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLanguage } from '../lib/language'
+import { API_URL } from '../lib/api'
+import { useSiteData } from '../lib/siteData'
 import { useSeo } from '../lib/seo'
 import { resolveImage } from '../lib/imageMap'
 import { Container } from '../components/ui/Container'
@@ -16,6 +18,9 @@ export function NewsDetail() {
   const { t } = useTranslation()
   const { newsSection } = content
   const item = newsSection.items.find((n) => n.slug === slug)
+  const { journalSettled } = useSiteData()
+  // an article created in the portal is not known until the first answer arrives: do not send the visitor away before that
+  const waiting = !item && !!API_URL && !journalSettled
 
   useSeo({
     title: item?.title ?? newsSection.title,
@@ -23,6 +28,7 @@ export function NewsDetail() {
     path: `/news/${slug ?? ''}`,
   })
 
+  if (waiting) return <div className="min-h-[60vh]" aria-busy="true" />
   if (!item) return <Navigate to="/news" replace />
 
   const related = newsSection.items.filter((n) => n.slug !== item.slug).slice(0, 3)
@@ -38,9 +44,11 @@ export function NewsDetail() {
       <section className="py-16 md:py-24">
         <Container className="max-w-3xl">
           <Reveal>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-900/45" dir="ltr">
-              {item.date}
-            </p>
+            {item.date ? (
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-900/45" dir="ltr">
+                {item.date}
+              </p>
+            ) : null}
             <Prose text={item.content} className="mt-4 space-y-4 text-base leading-relaxed text-ink-900/80 md:text-lg" />
           </Reveal>
         </Container>

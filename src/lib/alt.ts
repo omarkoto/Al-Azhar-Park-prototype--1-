@@ -7,8 +7,8 @@ export const ALT = {
   parkMap: { en: 'Map of Al-Azhar Park', ar: 'خريطة حديقة الأزهر' },
   planMap: { en: 'Map of Al-Azhar Park with your route', ar: 'خريطة حديقة الأزهر ومسارك عليها' },
   aboutHero: {
-    en: 'The royal palm promenade of Al-Azhar Park at golden hour, with visitors strolling beside the lake',
-    ar: 'ممشى النخيل الملكي في حديقة الأزهر وقت الغروب، بينما يتنزه الزوار بجوار البحيرة',
+    en: 'The fountain plaza and royal palm avenue of Al-Azhar Park, leading to the arched pavilion',
+    ar: 'ساحة النوافير وممشى النخيل الملكي في حديقة الأزهر، يؤدي إلى الجناح ذي الأقواس',
   },
   aboutColonnade: {
     en: 'A shaded colonnade terrace overlooking the park, with the Citadel on the skyline',

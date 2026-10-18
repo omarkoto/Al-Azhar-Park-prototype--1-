@@ -192,10 +192,10 @@ describe('media library (e2e)', () => {
       const restaurant = await prisma.restaurant.findFirstOrThrow({ where: { slug: 'hilltop' } });
       await prisma.restaurant.update({ where: { id: restaurant.id }, data: { heroMediaId: m.id } });
       const info = (await get(`/media/${m.id}`, 'content').expect(200)).body.data;
-      expect(info.usage).toEqual(['main photo of Hill-top Restaurant']);
+      expect(info.usage).toEqual(['main photo of Hill-Top Restaurant']);
       const res = await send('delete', `/media/${m.id}`, 'content').expect(409);
       expect(res.body.error.code).toBe('MEDIA_IN_USE');
-      expect(res.body.error.message).toMatch(/Hill-top/);
+      expect(res.body.error.message).toMatch(/Hill-Top/);
       expect(files()).toHaveLength(1);
       await prisma.restaurant.update({ where: { id: restaurant.id }, data: { heroMediaId: null } });
       await send('delete', `/media/${m.id}`, 'content').expect(200);

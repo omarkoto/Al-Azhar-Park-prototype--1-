@@ -192,7 +192,7 @@ function RoleEditor({ role, catalogue, canWrite, ownRoles, onChanged, onDeleted 
           {visible.map((g) => {
             const all = g.items.every((i) => selected.has(i.code))
             return (
-              <fieldset key={g.resource} disabled={!canWrite || busy !== null} className="rounded-lg border border-stone-200 p-3">
+              <fieldset key={g.resource} disabled={!canWrite || busy !== null} className="rounded-lg border border-sand-200 p-3">
                 <legend className="px-1">
                   <Checkbox label={<span className="font-semibold capitalize">{g.resource.replace(/-/g, ' ')}</span>} checked={all} onChange={(v) => setSelected(toggleGroup(selected, g, v))} />
                 </legend>

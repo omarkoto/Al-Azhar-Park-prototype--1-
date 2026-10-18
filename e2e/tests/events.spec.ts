@@ -39,7 +39,7 @@ test.describe.serial('events: portal to public website', () => {
   test('the Events page lists the seeded events with their status, and filters and searches them', async () => {
     await openSection(page, 'Events')
     await expect(page.getByTestId('event-row')).toHaveCount(3)
-    await expect(row(page, 'Cairo Jazz Nights')).toContainText('Published')
+    await expect(row(page, 'Jazz Evenings on the Lawn')).toContainText('Published')
     await expect(row(page, 'Ramadan Nights')).toContainText('Coming soon')
     await expect(row(page, 'Ramadan Nights')).toContainText('Nightly') // the editors' own wording wins over the computed time
 
@@ -133,7 +133,7 @@ test.describe.serial('events: portal to public website', () => {
     const published = site.getByTestId('events-published')
     await expect(published.getByText('Browser Test Concert')).toBeVisible({ timeout: 15_000 })
     await expect(site.getByTestId('events-coming-soon').getByText('Browser Test Concert')).toHaveCount(0)
-    await expect(published.getByTestId('event-card').first()).toContainText('Cairo Jazz Nights') // the seeded one keeps its place
+    await expect(published.getByTestId('event-card').first()).toContainText('Jazz Evenings on the Lawn') // the seeded one keeps its place
 
     await published.getByTestId('event-card').filter({ hasText: 'Browser Test Concert' }).click()
     await expect(site.getByRole('heading', { name: 'Browser Test Concert' }).first()).toBeVisible()
@@ -202,13 +202,13 @@ test.describe.serial('events: portal to public website', () => {
   test('reorders events: the public listing follows', async ({ browser }) => {
     await openSection(page, 'Events')
     await expect(page.getByTestId('event-row')).toHaveCount(4)
-    await page.getByRole('button', { name: 'Move Cairo Jazz Nights up' }).click()
-    await expect(page.getByTestId('event-row').first()).toContainText('Cairo Jazz Nights')
-    await page.getByRole('button', { name: 'Move Artisan Market Days up' }).click()
-    await page.getByRole('button', { name: 'Move Artisan Market Days up' }).click()
-    await expect(page.getByTestId('event-row').first()).toContainText('Artisan Market Days')
+    await page.getByRole('button', { name: 'Move Jazz Evenings on the Lawn up' }).click()
+    await expect(page.getByTestId('event-row').first()).toContainText('Jazz Evenings on the Lawn')
+    await page.getByRole('button', { name: 'Move Darb Al-Ahmar Artisan Weekend up' }).click()
+    await page.getByRole('button', { name: 'Move Darb Al-Ahmar Artisan Weekend up' }).click()
+    await expect(page.getByTestId('event-row').first()).toContainText('Darb Al-Ahmar Artisan Weekend')
     const site = await freshSitePage(browser, '/events')
-    await expect(site.getByTestId('events-coming-soon').getByTestId('event-card').first()).toContainText('Artisan Market Days', { timeout: 15_000 })
+    await expect(site.getByTestId('events-coming-soon').getByTestId('event-card').first()).toContainText('Darb Al-Ahmar Artisan Weekend', { timeout: 15_000 })
     await site.context().close()
     // filters hide the arrows: the order is only changed on the whole list
     await page.getByLabel('Status').selectOption('COMING_SOON')
@@ -245,7 +245,7 @@ test.describe.serial('events: portal to public website', () => {
     await site.goto(`${SITE}/events`)
     await expect(site.getByTestId('events-coming-soon').getByText('Ramadan Nights in the Garden')).toBeVisible({ timeout: 15_000 })
     await site.goto(`${SITE}/events/cairo-jazz-nights`)
-    await expect(site.getByRole('heading', { name: 'Cairo Jazz Nights' }).first()).toBeVisible()
+    await expect(site.getByRole('heading', { name: 'Jazz Evenings on the Lawn' }).first()).toBeVisible()
     await context.close()
   })
 
@@ -311,7 +311,7 @@ test.describe('events: who may do what', () => {
     const { page, context } = await signedInPage(browser, USERS.operations)
     await openSection(page, 'Events')
     await expect(page.getByRole('link', { name: 'Add an event' })).toBeVisible()
-    await page.getByRole('link', { name: 'Open Cairo Jazz Nights' }).click()
+    await page.getByRole('link', { name: 'Open Jazz Evenings on the Lawn' }).click()
     await expect(page.getByLabel('Title (English)')).toBeEnabled()
     await expect(page.getByText('Changing the status needs the publish permission.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Publish' })).toHaveCount(0)
@@ -326,7 +326,7 @@ test.describe('events: who may do what', () => {
     await openSection(analyst.page, 'Events')
     await expect(analyst.page.getByTestId('event-row')).toHaveCount(4) // the three seeded events and the archived test event
     await expect(analyst.page.getByRole('link', { name: 'Add an event' })).toHaveCount(0)
-    await analyst.page.getByRole('link', { name: 'Open Cairo Jazz Nights' }).click()
+    await analyst.page.getByRole('link', { name: 'Open Jazz Evenings on the Lawn' }).click()
     await expect(analyst.page.getByText('You can view this event but not change it.')).toBeVisible()
     await expect(analyst.page.getByRole('button', { name: 'Save changes' })).toHaveCount(0)
     const denied = await apiAs(analyst.page, 'POST', '/events', { slug: 'x-event', titleEn: 'x' })

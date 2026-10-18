@@ -90,7 +90,7 @@ Every change is recorded with actor, request id, and old/new values: `event.crea
 
 ## Seed (development)
 
-Ramadan Nights (coming soon, with its multi-day wording and a 20:00 – 01:00 evening), Cairo Jazz Nights (published, venue Open Area) and Artisan Market Days (coming soon), plus the three venues. Created once; editors' changes are never overwritten. The seed is idempotent.
+Ramadan Nights (coming soon, with its multi-day wording and a 20:00 – 01:00 evening), Jazz Evenings on the Lawn (published, venue Open Area) and Darb Al-Ahmar Artisan Weekend (coming soon), plus the three venues. Created once; editors' changes are never overwritten. The seed is idempotent.
 
 ## Known limits
 

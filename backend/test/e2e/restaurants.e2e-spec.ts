@@ -327,7 +327,7 @@ describe('restaurants, menus and photos (e2e)', () => {
       expect(res.headers['cache-control']).toMatch(/public, max-age=60/);
       const list = res.body.data;
       expect(slugs(list)).toEqual(['hilltop', 'lakeside', 'masrawya']);
-      expect(list[0]).toMatchObject({ nameEn: 'Hill-top Restaurant', nameAr: 'مطعم القمة', opensAt: '12:00', closesAt: '00:00', closesAfterMidnight: true, instagramUrl: null, hero: null, gallery: [] }); // no Instagram address is built in: it comes from the portal
+      expect(list[0]).toMatchObject({ nameEn: 'Hill-Top Restaurant', nameAr: 'مطعم القلعة', opensAt: '12:00', closesAt: '00:00', closesAfterMidnight: true, instagramUrl: null, hero: null, gallery: [] }); // no Instagram address is built in: it comes from the portal
       expect(list[0].menus[0]).toMatchObject({ kind: 'link', url: expect.stringMatching(/^https:\/\//) });
       expect(JSON.stringify(list)).not.toMatch(/"id"|updatedAt|isActive|sortOrder|deletedAt/);
     });

@@ -12,7 +12,7 @@ import {
   TICKET_TYPES,
 } from './seed-data/catalog';
 import { DEV_USERS, PERMISSIONS, ROLES } from './seed-data/rbac';
-import { EVENTS, RESTAURANTS, VENUES } from './seed-data/sample-content';
+import { EVENTS, RESTAURANTS, VENUES, JOURNAL_ARTICLES } from './seed-data/sample-content';
 
 /** Postgres `time` / `date` columns are exchanged as Date objects pinned to UTC. */
 const time = (hhmm: string) => new Date(`1970-01-01T${hhmm}:00.000Z`);
@@ -157,6 +157,15 @@ export async function seedDevelopment(prisma: PrismaClient, devPassword: string)
       where: { slug: e.slug },
       update: {},
       create: { ...rest, venueId: venue?.id ?? null, startsAt: new Date(e.startsAt), endsAt: new Date(e.endsAt), publishedAt: new Date() },
+    });
+  }
+
+  // Journal: created once, published, in the order they are listed (the first is the newest); what editors change afterwards is never overwritten.
+  for (const [i, a] of JOURNAL_ARTICLES.entries()) {
+    await prisma.journalArticle.upsert({
+      where: { slug: a.slug },
+      update: {},
+      create: { ...a, status: 'PUBLISHED', publishedAt: new Date(Date.now() - i * 60_000) },
     });
   }
 }

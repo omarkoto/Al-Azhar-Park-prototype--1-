@@ -3,8 +3,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequestContext } from '../audit/audit.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser, Public, RequestCtx, RequirePermissions } from '../auth/decorators';
+import { Throttle } from '@nestjs/throttler';
+import { ContactMessageService } from './contact-message.service';
 import { HoursService } from './hours.service';
-import { ListSpecialHoursQueryDto, SpecialHoursDto, UpdateContactDto, UpdateParkDto, UpdateWeeklyHoursDto } from './park.dto';
+import { ContactMessageDto, ListSpecialHoursQueryDto, SpecialHoursDto, UpdateContactDto, UpdateParkDto, UpdateWeeklyHoursDto } from './park.dto';
 import { ParkService } from './park.service';
 import { SiteService } from './site.service';
 
@@ -12,7 +14,10 @@ import { SiteService } from './site.service';
 @ApiTags('public')
 @Controller('public')
 export class PublicSiteController {
-  constructor(private readonly site: SiteService) {}
+  constructor(
+    private readonly site: SiteService,
+    private readonly messages: ContactMessageService,
+  ) {}
 
   @Public()
   @Get('site')
@@ -20,6 +25,16 @@ export class PublicSiteController {
   @ApiOperation({ summary: 'Park information, contact details, opening hours and today\'s status' })
   snapshot() {
     return this.site.snapshot();
+  }
+
+  @Public()
+  @Post('contact-message')
+  @HttpCode(202)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: "Send a message from the website contact form to the park's inbox" })
+  async contactMessage(@Body() dto: ContactMessageDto) {
+    await this.messages.send(dto);
+    return { sent: true };
   }
 }
 

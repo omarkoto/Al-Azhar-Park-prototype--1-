@@ -63,17 +63,10 @@ export function Events() {
   useSeo({ title: events.title, description: events.lead, path: '/events' })
   const reduceMotion = useReducedMotion()
 
-  const [activeType, setActiveType] = useState<TypeKey>('all')
   const [selected, setSelected] = useState(0)
 
-  const suited = VENUES_BY_TYPE[activeType]
   const venue = events.venues[selected]
   const credit = PHOTO_CREDITS[selected]
-
-  function chooseType(key: TypeKey) {
-    setActiveType(key)
-    if (!VENUES_BY_TYPE[key].includes(selected)) setSelected(VENUES_BY_TYPE[key][0])
-  }
 
   // Which event types a venue is best for (excluding "all")
   const venueTypes = (index: number) => TYPE_KEYS.filter((k) => k !== 'all' && VENUES_BY_TYPE[k].includes(index))
@@ -104,38 +97,21 @@ export function Events() {
             <h2 className="font-display mt-4 text-3xl leading-tight font-medium text-ink-900 md:text-5xl">{events.planningTitle}</h2>
           </Reveal>
 
-          {/* What are you planning? */}
-          <Reveal delay={0.08} className="mt-8 flex flex-wrap justify-center gap-2">
-            {TYPE_KEYS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => chooseType(key)}
-                aria-pressed={activeType === key}
-                className={clsx(
-                  'rounded-full border px-5 py-2.5 text-xs font-semibold tracking-wide transition-colors',
-                  activeType === key
-                    ? 'border-teal-700 bg-teal-700 text-sand-50'
-                    : 'border-ink-900/15 bg-sand-50 text-ink-900/65 hover:border-teal-700 hover:text-teal-700',
-                )}
-              >
-                {t(TYPE_LABEL[key])}
-              </button>
-            ))}
+          <Reveal delay={0.08}>
+            <p className="mx-auto mt-6 max-w-md text-center text-base text-ink-900/65">{t('venuePrompt')}</p>
           </Reveal>
 
           {/* Three arched doorways — pick a venue */}
           <Reveal delay={0.12} className="mx-auto mt-14 grid max-w-2xl grid-cols-3 gap-4 sm:gap-8">
             {events.venues.map((v, i) => {
               const isSelected = selected === i
-              const isSuited = suited.includes(i)
               return (
                 <button
                   key={v.name}
                   type="button"
                   onClick={() => setSelected(i)}
                   aria-pressed={isSelected}
-                  className={clsx('group text-center transition-opacity duration-300', !isSuited && 'opacity-35')}
+                  className="group text-center"
                 >
                   <div className="relative mx-auto w-full max-w-[9rem]">
                     <div

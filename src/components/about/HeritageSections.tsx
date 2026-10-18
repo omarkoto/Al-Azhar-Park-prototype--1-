@@ -6,9 +6,6 @@ import { Eyebrow } from '../ui/SectionHeading'
 import { Reveal } from '../ui/Reveal'
 import { RosetteIcon } from '../ui/RosetteIcon'
 import { LatticePattern } from '../ui/LatticePattern'
-import azharMosque from '../../assets/images/wall-969-al-azhar-mosque.webp'
-import babFutuh from '../../assets/images/wall-1087-bab-al-futuh.webp'
-import ayyubidWall from '../../assets/images/wall-ayyubid-al-azhar-park.webp'
 
 /** "Green lung" — a full-bleed statement band. */
 function Lung() {
@@ -17,7 +14,7 @@ function Lung() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <section className="relative overflow-hidden bg-teal-900 py-24 text-sand-50 md:py-32">
+    <section className="relative overflow-hidden bg-teal-900 py-16 text-sand-50 md:py-24">
       <LatticePattern id="lung-lattice" className="text-gold-500/[0.07]" />
 
       {/* Slowly "breathing" rings behind the quote */}
@@ -92,7 +89,7 @@ function History() {
   const { history } = content.about.heritage
 
   return (
-    <section className="relative overflow-hidden py-20 md:py-28">
+    <section className="relative overflow-hidden py-14 md:py-20">
       <LatticePattern id="history-about-lattice" className="text-teal-900/[0.035]" />
       <Container className="relative grid items-center gap-14 md:grid-cols-[1.05fr_1fr] md:gap-20">
         <Reveal>
@@ -113,98 +110,4 @@ function History() {
   )
 }
 
-// One photograph per building phase (Wikimedia Commons). Credits are shown under each card.
-const PHOTOS = [
-  { src: azharMosque, position: '50% 28%', author: 'Tentoila', license: 'Public domain', url: 'https://commons.wikimedia.org/wiki/File:Al-Azhar_(inside)_2006.jpg' },
-  { src: babFutuh, position: '20% 50%', author: 'Djehouty', license: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/wiki/File:Cairo_-_Bab_al-Futuh_03.jpg' },
-  { src: ayyubidWall, position: '80% 50%', author: 'R Prazeres', license: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/wiki/File:Ayyubid_wall_Cairo_DSCF1591.jpg' },
-]
-
-/** The eastern city wall — three arched "gates", one per building phase, textured like the masonry itself. */
-function Wall() {
-  const { content, lang } = useLanguage()
-  const { wall } = content.about.heritage
-  const numerals = lang === 'ar' ? ['١', '٢', '٣'] : ['I', 'II', 'III']
-
-  return (
-    <section className="border-t border-ink-900/10 bg-sand-100 py-20 md:py-28">
-      <Container>
-        <Reveal className="max-w-3xl">
-          <Eyebrow>{wall.eyebrow}</Eyebrow>
-          <h2 className="font-display mt-4 text-3xl leading-tight font-medium text-ink-900 md:text-4xl">{wall.title}</h2>
-          <p className="mt-5 text-base leading-relaxed text-ink-900/70 md:text-lg">{wall.lead}</p>
-        </Reveal>
-
-        <div className="relative mt-14 grid gap-14 md:grid-cols-3 md:gap-x-8 md:gap-y-0">
-          {/* A single gold thread tying the three phases together */}
-          <span className="pointer-events-none absolute inset-x-[16%] top-[7.5rem] hidden h-px bg-gradient-to-r from-gold-500/0 via-gold-500/60 to-gold-500/0 md:block" aria-hidden="true" />
-
-          {wall.layers.map((layer, i) => {
-            const photo = PHOTOS[i]
-            return (
-              <Reveal key={layer.year} delay={i * 0.12} className="md:row-span-6 md:grid md:grid-rows-subgrid">
-                {/* Six shared rows (arch, title, text, caption, inscription, credit) so all three cards line up exactly */}
-                <article className="group md:row-span-6 md:grid md:grid-rows-subgrid">
-                  <div className="relative mx-auto w-full max-w-[17rem]">
-                    <div
-                      aria-hidden="true"
-                      className="absolute -inset-2 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700"
-                      style={{ clipPath: 'url(#arch-clip)' }}
-                    />
-                    <div
-                      className="relative flex aspect-[3/4] w-full items-end justify-center overflow-hidden bg-teal-900"
-                      style={{ clipPath: 'url(#arch-clip)' }}
-                    >
-                      <img
-                        src={photo.src}
-                        alt={layer.caption}
-                        loading="lazy"
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-110"
-                        style={{ objectPosition: photo.position }}
-                      />
-                      <span className="absolute inset-0 bg-gradient-to-t from-teal-950/85 via-teal-950/15 to-transparent" aria-hidden="true" />
-                      <div className="relative pb-8 text-center">
-                        <p className="font-display text-sm font-semibold tracking-[0.3em] text-gold-100/90">{numerals[i]}</p>
-                        <p className="font-display mt-1 px-3 text-3xl font-medium text-sand-50 drop-shadow md:text-4xl">{layer.year}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <h3 className="font-display mx-auto mt-9 w-full max-w-sm text-center text-xl leading-snug font-medium text-ink-900 md:text-[1.35rem]">{layer.title}</h3>
-                  <p className="mx-auto mt-3 w-full max-w-sm text-center text-sm leading-relaxed text-ink-900/70 md:text-[15px]">{layer.body}</p>
-                  <p className="mx-auto mt-4 w-full max-w-sm text-center text-[13px] italic leading-relaxed text-ink-900/55">{layer.caption}</p>
-
-                  {/* Inscription band */}
-                  <div className="mx-auto mt-8 w-full max-w-sm">
-                    <div className="relative border-y border-gold-500/45 py-5">
-                      <span className="absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-gold-500" aria-hidden="true" />
-                      <span className="absolute -bottom-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-gold-500" aria-hidden="true" />
-                      <dl className="grid grid-cols-2 divide-x divide-gold-500/30 text-center rtl:divide-x-reverse">
-                        <div className="px-3">
-                          <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-700">{wall.builderLabel}</dt>
-                          <dd className="font-display mt-2 text-base leading-snug text-teal-800">{layer.builder}</dd>
-                        </div>
-                        <div className="px-3">
-                          <dt className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-700">{wall.materialLabel}</dt>
-                          <dd className="font-display mt-2 text-base leading-snug text-teal-800">{layer.material}</dd>
-                        </div>
-                      </dl>
-                    </div>
-                  </div>
-                  <p className="mx-auto mt-4 w-full max-w-sm text-center text-[11px] text-ink-900/40">
-                    {wall.photoLabel}:{' '}
-                    <a href={photo.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-teal-700 hover:underline">
-                      {photo.author} · {photo.license}
-                    </a>
-                  </p>
-                </article>
-              </Reveal>
-            )
-          })}
-        </div>
-      </Container>
-    </section>
-  )
-}
-
-export const HeritageSections = { Lung, History, Wall }
+export const HeritageSections = { Lung, History }

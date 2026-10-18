@@ -25,7 +25,7 @@ export function ComingSoonCarousel() {
   const slides = events.length > 1 ? [...events, events[0]] : events
 
   return (
-    <section className="pt-14 pb-8 md:pt-16 md:pb-10">
+    <section className="pt-8 pb-4 md:pt-10 md:pb-6">
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading eyebrow={comingSoon.eyebrow} title={comingSoon.title} body={comingSoon.body} className="max-w-xl" />

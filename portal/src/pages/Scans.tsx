@@ -113,7 +113,7 @@ export function ScansPage() {
                   {all && <th className="py-2">Staff</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-sand-100">
                 {rows.map((s) => (
                   <tr key={s.id} data-testid="scan-row">
                     <td className="py-2 pr-3 whitespace-nowrap">{formatMoment(s.scannedAt)}</td>

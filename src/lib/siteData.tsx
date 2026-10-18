@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { siteLinks, type PublicSite, type SiteLinks } from '../content/siteData'
 import type { PublicRestaurant } from '../content/restaurantData'
 import type { PublicEvent } from '../content/eventData'
+import type { PublicJournalArticle } from '../content/journalData'
 import { API_URL, apiGet } from './api'
 
 interface SiteDataValue {
@@ -16,10 +17,14 @@ interface SiteDataValue {
   publishedEvents: PublicEvent[] | null
   /** false only while the first answer is on its way (pages for portal-created events wait for it) */
   eventsSettled: boolean
+  /** Journal articles from the portal: null until loaded or when the API is unavailable (the site then shows its built-in ones) */
+  journalArticles: PublicJournalArticle[] | null
+  /** false only while the first answer is on its way (an article page must not send visitors away before that) */
+  journalSettled: boolean
   links: SiteLinks
 }
 
-const SiteDataContext = createContext<SiteDataValue>({ site: null, restaurants: null, restaurantsSettled: true, comingSoonEvents: null, publishedEvents: null, eventsSettled: true, links: siteLinks(null) })
+const SiteDataContext = createContext<SiteDataValue>({ site: null, restaurants: null, restaurantsSettled: true, comingSoonEvents: null, publishedEvents: null, eventsSettled: true, journalArticles: null, journalSettled: true, links: siteLinks(null) })
 const REFRESH_MS = 5 * 60 * 1000
 
 /** Loads the park's live information (contact, hours, statistics) once, then every few minutes. Never blocks rendering. */
@@ -30,6 +35,8 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   const [comingSoonEvents, setComingSoonEvents] = useState<PublicEvent[] | null>(null)
   const [publishedEvents, setPublishedEvents] = useState<PublicEvent[] | null>(null)
   const [eventsSettled, setEventsSettled] = useState(!API_URL)
+  const [journalArticles, setJournalArticles] = useState<PublicJournalArticle[] | null>(null)
+  const [journalSettled, setJournalSettled] = useState(!API_URL)
 
   useEffect(() => {
     if (!API_URL) return
@@ -51,6 +58,10 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
         })
         .catch(() => undefined) // keep what we have, or the built-in events
         .finally(() => !cancelled && setEventsSettled(true))
+      apiGet<PublicJournalArticle[]>('/public/journal', controller.signal)
+        .then((data) => !cancelled && setJournalArticles(data))
+        .catch(() => undefined) // keep what we have, or the built-in articles
+        .finally(() => !cancelled && setJournalSettled(true))
     }
     load()
     const timer = window.setInterval(load, REFRESH_MS)
@@ -62,8 +73,8 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ site, restaurants, restaurantsSettled, comingSoonEvents, publishedEvents, eventsSettled, links: siteLinks(site) }),
-    [site, restaurants, restaurantsSettled, comingSoonEvents, publishedEvents, eventsSettled],
+    () => ({ site, restaurants, restaurantsSettled, comingSoonEvents, publishedEvents, eventsSettled, journalArticles, journalSettled, links: siteLinks(site) }),
+    [site, restaurants, restaurantsSettled, comingSoonEvents, publishedEvents, eventsSettled, journalArticles, journalSettled],
   )
   return <SiteDataContext.Provider value={value}>{children}</SiteDataContext.Provider>
 }

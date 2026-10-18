@@ -5,8 +5,8 @@ export const DOW_WEEKDAY = 1 | 2 | 4 | 8 | 16; // Sun–Thu  = 31
 export const DOW_WEEKEND = 32 | 64; //            Fri–Sat  = 96
 
 export const TICKET_AUDIENCES = [
-  { code: 'RESIDENT', nameEn: 'Egyptian / resident', nameAr: 'مصري / مقيم', sortOrder: 1 },
-  { code: 'VISITOR', nameEn: 'Non-resident visitor', nameAr: 'زائر غير مقيم', sortOrder: 2 },
+  { code: 'RESIDENT', nameEn: 'Egyptian', nameAr: 'مصري', sortOrder: 1 },
+  { code: 'VISITOR', nameEn: 'Non-Egyptian', nameAr: 'غير مصري', sortOrder: 2 },
 ] as const;
 
 export const TICKET_TYPES = [
@@ -49,7 +49,7 @@ export const PARK_SETTINGS = {
   descriptionAr:
     'وُلدت حديقة الأزهر هدية لأهل القاهرة، لتصبح واحدة من أهم مشاريع إعادة إحياء المدن في الشرق الأوسط.',
   stats: [
-    { value: '74', labelEn: 'Acres of gardens and terraces', labelAr: 'فدانًا (٣٠ هكتارًا) من الحدائق والشرفات' },
+    { value: '71', labelEn: 'Feddans of gardens and terraces', labelAr: 'فدانًا (٣٠ هكتارًا) من الحدائق والشرفات' },
     { value: '1984', labelEn: 'Year the park was conceived', labelAr: 'العام الذي وُلدت فيه فكرة الحديقة' },
     { value: '2005', labelEn: 'Year the park opened to the public', labelAr: 'عام افتتاح الحديقة للجمهور' },
     { value: '60', labelEn: "Named one of the world's 60 great public spaces", labelAr: 'مُدرجة ضمن ٦٠ مساحة عامة كبرى في العالم' },

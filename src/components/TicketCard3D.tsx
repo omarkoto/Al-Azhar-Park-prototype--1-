@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMoney } from '../lib/alt'
 
 interface TicketCard3DProps {
-  /** who the tickets are for, e.g. "Egyptian / resident" */
+  /** who the tickets are for, e.g. "Egyptian" */
   categoryLabel: string
   /** the visit date as the visitor should read it (or what the day is, before one is chosen) */
   dateLabel: string

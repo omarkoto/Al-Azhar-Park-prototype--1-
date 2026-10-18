@@ -64,7 +64,7 @@ export function UsersPage() {
         actions={
           canWrite && (
             <Button onClick={() => setInviting(true)} disabled={roleList.length === 0}>
-              Invite user
+              Add account
             </Button>
           )
         }
@@ -102,7 +102,7 @@ export function UsersPage() {
                     <th className="py-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-sand-100">
                   {data.items.map((u) => (
                     <tr key={u.id} data-testid="user-row">
                       <td className="py-3 pr-3">
@@ -183,6 +183,7 @@ function InviteUser({ roles, onClose, onCreated }: { roles: RoleInfo[]; onClose:
   const toast = useToast()
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
   const [chosen, setChosen] = useState<string[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -193,8 +194,8 @@ function InviteUser({ roles, onClose, onCreated }: { roles: RoleInfo[]; onClose:
     setErrors({})
     setFormError(null)
     try {
-      await api.post('/users', { email: email.trim(), fullName: fullName.trim(), roleCodes: chosen })
-      toast('success', `Invitation sent to ${email.trim()}.`)
+      await api.post('/users', { email: email.trim(), fullName: fullName.trim(), roleCodes: chosen, ...(password ? { password } : {}) })
+      toast('success', password ? `Account created for ${email.trim()}.` : `Invitation sent to ${email.trim()}.`)
       await onCreated()
     } catch (err) {
       const fe = fieldErrors(err)
@@ -206,19 +207,20 @@ function InviteUser({ roles, onClose, onCreated }: { roles: RoleInfo[]; onClose:
   }
 
   return (
-    <Modal title="Invite a user" onClose={onClose}>
+    <Modal title="Add an account" onClose={onClose}>
       <div className="space-y-4">
         {formError && <Notice tone="error">{formError}</Notice>}
-        <p className="text-sm text-stone-500">They receive a one-time link to choose their own password. You never see or set it.</p>
+        <p className="text-sm text-stone-500">Set a password they can sign in with now, or leave it empty to send them a one-time link to choose their own.</p>
         <TextInput label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} error={errors.fullName} />
         <TextInput label="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
+        <TextInput label="Password (optional)" type="text" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} hint="At least 12 characters; not common, and not containing their name or e-mail. Share it with them securely." />
         <RolePicker roles={roles} chosen={chosen} onChange={setChosen} myPermissions={profile?.permissions ?? []} error={errors.roleCodes} />
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button onClick={() => void submit()} busy={busy} disabled={!email.trim() || fullName.trim().length < 2 || chosen.length === 0}>
-            Send invitation
+            {password ? 'Create account' : 'Send invitation'}
           </Button>
         </div>
       </div>
@@ -336,7 +338,7 @@ function UserDetail({ user, roles, canWrite, onClose, onChanged }: { user: UserR
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-t border-stone-200 pt-4">
+            <div className="flex flex-wrap gap-2 border-t border-sand-200 pt-4">
               <Button variant="secondary" busy={busy === 'reset'} disabled={!user.isActive} onClick={() => void run('reset', () => api.post(`/users/${user.id}/send-password-reset`), 'Password reset link sent.')}>
                 Send password reset
               </Button>

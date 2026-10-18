@@ -20,7 +20,7 @@ Authorization is always by **permission** (`resource:action`), never by role nam
 | | Ticket states `/analytics/tickets` | `analytics:read` or `analytics:operations` |
 | | Event statistics `/analytics/events` | `analytics:read` or `analytics:content` |
 | | Reports `/analytics/reports` | any analytics permission (each download needs its own report's permission) |
-| **Park & content** | Park information, Contact details, Opening hours, Events, Venues, Restaurants, Media library | `park:read`, `contact:read`, `hours:read`, `events:read`, `venues:read`, `restaurants:read`, `media:read` |
+| **Park & content** | Park information, Contact details, Opening hours, Events, Journal, Venues, Restaurants, Media library | `park:read`, `contact:read`, `hours:read`, `events:read`, `journal:read`, `venues:read`, `restaurants:read`, `media:read` |
 | **Tickets & pricing** | Ticket types, Ticket prices | `ticket-types:read`, `pricing:read` |
 | **Administration** | Staff accounts, Roles & permissions | `users:read`, `roles:read` |
 

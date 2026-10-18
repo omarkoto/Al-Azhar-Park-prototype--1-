@@ -54,9 +54,11 @@ function NewsIndexCard({ item, cta }: { item: NewsItem; cta: string }) {
       <div className="p-6">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-700">{item.category}</p>
-          <p className="text-xs text-ink-900/45" dir="ltr">
-            {item.date}
-          </p>
+          {item.date ? (
+            <p className="text-xs text-ink-900/45" dir="ltr">
+              {item.date}
+            </p>
+          ) : null}
         </div>
         <h3 className="font-display mt-2 text-lg font-medium text-ink-900">{item.title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-ink-900/65">{item.excerpt}</p>

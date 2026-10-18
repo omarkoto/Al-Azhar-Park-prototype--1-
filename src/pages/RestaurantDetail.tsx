@@ -11,7 +11,13 @@ import { Eyebrow } from '../components/ui/SectionHeading'
 import { Button, ExternalLink } from '../components/ui/Button'
 import { Modal } from '../components/ui/Modal'
 import { RestaurantVisual } from '../components/RestaurantVisual'
+import { RestaurantGallery } from '../components/RestaurantGallery'
 import restaurantsHero from '../assets/images/restaurants-hero.webp'
+import hilltopHero from '../assets/images/hilltop-hero-panorama.jpg'
+import lakesideHero from '../assets/images/lakeside-hero-panorama.jpg'
+
+// restaurants with a dedicated wide banner photo; the others use their own picture
+const heroBySlug: Record<string, string> = { hilltop: hilltopHero, lakeside: lakesideHero }
 
 export function RestaurantDetail() {
   const { slug } = useParams()
@@ -33,10 +39,10 @@ export function RestaurantDetail() {
 
   return (
     <div>
-      <section className="relative flex min-h-[38vh] items-end overflow-hidden bg-teal-950 text-sand-50">
-        <img src={restaurantsHero} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-teal-950 via-teal-950/80 to-teal-950/40" />
-        <Container className="relative py-12">
+      <section className="relative flex min-h-[56vh] items-end md:min-h-[68vh] overflow-hidden bg-teal-950 text-sand-50">
+        <img src={heroBySlug[restaurant.slug] ?? (resolveImage(restaurant.image) || restaurantsHero)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-teal-950/70 via-teal-950/5 to-transparent" />
+        <Container className="relative py-12 md:py-16 [text-shadow:0_1px_14px_rgb(0_0_0/0.45)]">
           <Reveal>
             <Link to="/restaurants" className="inline-flex items-center gap-2 text-sm font-medium text-sand-100/80 hover:text-sand-50">
               ← {t('backToRestaurants')}
@@ -46,6 +52,12 @@ export function RestaurantDetail() {
             </div>
             <h1 className="font-display mt-3 text-4xl font-medium md:text-5xl">{restaurant.name}</h1>
             {restaurant.brand ? <p className="mt-2 text-sm text-sand-100/70">{t('byBrand', { brand: restaurant.brand })}</p> : null}
+            {restaurant.instagramUrl ? (
+              <ExternalLink href={restaurant.instagramUrl} target="_blank" rel="noopener noreferrer" className="mt-6">
+                <CalendarIcon />
+                {t('reserveTable')}
+              </ExternalLink>
+            ) : null}
           </Reveal>
         </Container>
       </section>
@@ -61,14 +73,6 @@ export function RestaurantDetail() {
                 <p className="mt-3 text-base leading-relaxed text-ink-900/75">{restaurant.atmosphere}</p>
               </div>
             </div>
-
-            {restaurant.gallery.length ? (
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                {restaurant.gallery.map((src) => (
-                  <img key={src} src={resolveImage(src)} alt="" className="aspect-[4/3] w-full rounded-sm object-cover" />
-                ))}
-              </div>
-            ) : null}
           </Reveal>
 
           <Reveal delay={0.1} className="h-fit rounded-2xl border border-ink-900/10 bg-sand-100 p-6">
@@ -131,6 +135,8 @@ export function RestaurantDetail() {
           </Reveal>
         </Container>
       </section>
+
+      <RestaurantGallery images={restaurant.gallery} name={restaurant.name} />
 
       <Modal open={menuOpen} onClose={() => setMenuOpen(false)} title={t('menuComingSoonTitle')}>
         <p className="text-sm leading-relaxed text-ink-900/70">{t('menuComingSoonBody')}</p>

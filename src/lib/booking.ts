@@ -293,22 +293,52 @@ export interface CatalogState {
   dayLoading: boolean
 }
 
-/** The ticket catalog, and the details of one visit date. Re-asks when the date changes; keeps the last answer on screen meanwhile. */
+/** A short, quick retry before saying "unavailable" (a restarting server answers a second later), then a slow one in the background. */
+const QUICK_RETRY_MS = [700, 1400]
+const BACKGROUND_RETRY_MS = 5000
+
+/**
+ * The ticket catalog, and the details of one visit date. Re-asks when the date changes; keeps the last answer on screen meanwhile.
+ * If the server cannot be reached the site first retries quickly, then says "unavailable" but keeps trying in the background
+ * (and when the visitor returns to the tab), so the ticket picker comes back by itself once the server answers.
+ */
 export function useBookingCatalog(date: string): CatalogState {
   const [state, setState] = useState<CatalogState>({ status: API_URL ? 'loading' : 'unavailable', catalog: null, day: null, dayLoading: false })
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     if (!API_URL) return
     const controller = new AbortController()
+    let timer: number | undefined
     setState((s) => ({ ...s, dayLoading: !!date }))
     fetchCatalog(date || undefined, controller.signal)
       .then((catalog) => setState({ status: 'ready', catalog, day: catalog.day, dayLoading: false }))
       .catch((e: unknown) => {
         if ((e as Error).name === 'AbortError') return
-        setState((s) => (s.catalog ? { ...s, dayLoading: false } : { status: 'unavailable', catalog: null, day: null, dayLoading: false }))
+        setState((s) => {
+          if (s.catalog) return { ...s, dayLoading: false }
+          // still within the quick retries: keep showing "loading" rather than flashing "unavailable"
+          return attempt < QUICK_RETRY_MS.length ? { ...s, status: 'loading' } : { status: 'unavailable', catalog: null, day: null, dayLoading: false }
+        })
+        timer = window.setTimeout(() => setAttempt((n) => n + 1), attempt < QUICK_RETRY_MS.length ? QUICK_RETRY_MS[attempt] : BACKGROUND_RETRY_MS)
       })
-    return () => controller.abort()
-  }, [date])
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [date, attempt])
+
+  // coming back to the tab (or the network returning) asks again straight away
+  useEffect(() => {
+    if (!API_URL || state.status !== 'unavailable') return
+    const again = () => setAttempt((n) => n + 1)
+    window.addEventListener('focus', again)
+    window.addEventListener('online', again)
+    return () => {
+      window.removeEventListener('focus', again)
+      window.removeEventListener('online', again)
+    }
+  }, [state.status])
 
   return state
 }

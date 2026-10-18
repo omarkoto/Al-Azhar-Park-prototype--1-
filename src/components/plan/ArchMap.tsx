@@ -36,12 +36,14 @@ export function ArchMap({
   lang,
   activeId,
   onActive,
+  onSelect,
   className,
 }: {
   plan: Plan
   lang: Lang
   activeId: string | null
   onActive: (id: string | null) => void
+  onSelect: (id: string) => void
   className?: string
 }) {
   const reduceMotion = useReducedMotion()
@@ -157,10 +159,21 @@ export function ArchMap({
                 initial={reduceMotion ? false : { opacity: 0, scale: 0.3 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay, type: 'spring', stiffness: 320, damping: 18 }}
-                style={{ transformOrigin: `${p.stop.x}px ${p.stop.y}px`, cursor: 'pointer' }}
+                style={{ transformOrigin: `${p.stop.x}px ${p.stop.y}px`, cursor: 'pointer', outline: 'none' }}
                 onMouseEnter={() => onActive(p.stop.id)}
                 onMouseLeave={() => onActive(null)}
-                onClick={() => onActive(active ? null : p.stop.id)}
+                onClick={() => onSelect(p.stop.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onSelect(p.stop.id)
+                  }
+                }}
+                onFocus={() => onActive(p.stop.id)}
+                onBlur={() => onActive(null)}
+                role="button"
+                tabIndex={0}
+                aria-label={p.stop.name[lang]}
               >
                 {active ? <circle cx={p.stop.x} cy={p.stop.y} r="26" fill="#cb9c4f" opacity="0.28" /> : null}
                 <circle cx={p.stop.x} cy={p.stop.y} r={active ? 17 : 14} fill="#cb9c4f" stroke="#06251f" strokeWidth="3" />

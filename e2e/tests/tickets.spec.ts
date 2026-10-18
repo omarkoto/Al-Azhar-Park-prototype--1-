@@ -42,7 +42,7 @@ async function freshPage(browser: Browser, path: string): Promise<Page> {
 async function chooseTickets(page: Page, o: { date: string; visitor?: boolean; adults?: number; children?: number }) {
   await page.goto(`${SITE}/tickets`)
   await expect(page.getByTestId('ticket-row').first()).toBeVisible()
-  if (o.visitor) await page.getByRole('radio', { name: /Non-resident/ }).click()
+  if (o.visitor) await page.getByRole('radio', { name: /Non-Egyptian/ }).click()
   else await page.getByRole('radio', { name: /Egyptian/ }).click()
   await page.getByLabel('Visit date').fill(o.date)
   await expect(page.getByTestId('ticket-price').first()).toContainText('LE')
@@ -122,7 +122,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await expect(page.getByTestId('ticket-price').first()).toHaveText(/^60 LE per ticket$/)
     await expect(page.getByTestId('ticket-total')).toHaveText(money(2 * 60 + 40))
 
-    await page.getByRole('radio', { name: /Non-resident/ }).click()
+    await page.getByRole('radio', { name: /Non-Egyptian/ }).click()
     await expect(page.getByTestId('ticket-price').first()).toHaveText(/^200 LE per ticket$/)
     await expect(page.getByTestId('ticket-total')).toHaveText(money(2 * 200 + 150))
     await page.getByLabel('Visit date').fill(THURSDAY)
@@ -181,7 +181,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     const page = await freshPage(browser, '/tickets')
     await chooseTickets(page, { date: THURSDAY, adults: 2, children: 1 })
     await addToCartAndCheckout(page)
-    await expect(page.getByTestId('quote-date')).toContainText('Egyptian / resident')
+    await expect(page.getByTestId('quote-date')).toContainText('Egyptian')
     await expect(page.getByTestId('quote-line')).toHaveCount(2)
     await expect(page.getByTestId('quote-total')).toHaveText(money(135))
 
@@ -480,8 +480,8 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
   test('prices: a new price applies from its date; orders already placed keep the price they paid', async ({ browser }) => {
     await openSection(admin, 'Ticket prices')
     await expect(admin.getByTestId('price-matrix-row')).toHaveCount(4)
-    await expect(admin.getByTestId('price-matrix-row').filter({ hasText: 'Egyptian / resident' }).filter({ hasText: 'Adult' })).toContainText('50 EGP')
-    await expect(admin.getByTestId('price-matrix-row').filter({ hasText: 'Egyptian / resident' }).filter({ hasText: 'Adult' })).toContainText('60 EGP')
+    await expect(admin.getByTestId('price-matrix-row').filter({ hasText: 'Egyptian' }).filter({ hasText: 'Adult' })).toContainText('50 EGP')
+    await expect(admin.getByTestId('price-matrix-row').filter({ hasText: 'Egyptian' }).filter({ hasText: 'Adult' })).toContainText('60 EGP')
 
     const from = nextDow(addDays(TODAY, 40), 0) // a Sunday well ahead, so today's orders are not affected
     await admin.getByRole('button', { name: 'Add a new price' }).click()
@@ -489,7 +489,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await dialog.getByRole('button', { name: 'Add price' }).click()
     await expect(dialog.getByText('Choose a ticket type.')).toBeVisible()
     await dialog.getByLabel('Ticket type').selectOption({ label: 'Adult' })
-    await dialog.getByLabel('For').selectOption({ label: 'Egyptian / resident' })
+    await dialog.getByLabel('For').selectOption({ label: 'Egyptian' })
     await dialog.getByLabel('Days').selectOption('WEEKDAY')
     await dialog.getByLabel('Price (EGP)').fill('0')
     await dialog.getByRole('button', { name: 'Add price' }).click()
@@ -506,7 +506,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     const upcoming = admin.getByTestId('price-row').filter({ hasText: '75.50 EGP' })
     await expect(upcoming).toContainText('Upcoming')
     // the old price now ends the day before the new one starts (it stays current until then) and keeps its sales count
-    const old = admin.getByTestId('price-row').filter({ hasText: 'Adult' }).filter({ hasText: 'Egyptian / resident' }).filter({ hasText: 'Weekdays' }).filter({ hasText: /(?<![\d.])50 EGP/ })
+    const old = admin.getByTestId('price-row').filter({ hasText: 'Adult' }).filter({ hasText: 'Egyptian' }).filter({ hasText: 'Weekdays' }).filter({ hasText: /(?<![\d.])50 EGP/ })
     await expect(old).toHaveCount(1)
     await expect(old).toContainText('Current')
     await expect(old).not.toContainText('open ended')
@@ -534,7 +534,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
 
     // switch the new price off again: the ticket cannot be sold on those dates without a price
     admin.once('dialog', (d) => void d.accept())
-    await admin.getByRole('button', { name: /Switch off Adult Egyptian \/ resident 75.50 EGP/ }).click()
+    await admin.getByRole('button', { name: /Switch off Adult Egyptian 75.50 EGP/ }).click()
     await expect(admin.getByText('Price switched off.').first()).toBeVisible()
     await expect(upcoming).toContainText('Switched off')
   })
@@ -550,7 +550,7 @@ test.describe.serial('ticket purchasing: website, payment and portal', () => {
     await page.getByRole('button', { name: /Add tickets to cart/ }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Checkout' }).click()
     await expect(page.getByTestId('quote-total')).toHaveText('100 LE')
-    await expect(page.getByTestId('quote-date')).toContainText('Egyptian / resident')
+    await expect(page.getByTestId('quote-date')).toContainText('Egyptian')
     expect(planTotal).toMatch(/LE$/)
     await page.context().close()
   })

@@ -1,13 +1,12 @@
 import clsx from 'clsx'
 import { motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion'
 import { useContent, useLanguage } from '../lib/language'
+import { useSiteData } from '../lib/siteData'
 import { useSeo } from '../lib/seo'
-import { contentByLang } from '../content'
 import { Container } from '../components/ui/Container'
-import { Eyebrow } from '../components/ui/SectionHeading'
-import { SectionHeading } from '../components/ui/SectionHeading'
+import { Eyebrow, SectionHeading } from '../components/ui/SectionHeading'
 import { Reveal } from '../components/ui/Reveal'
-import { ButtonLink } from '../components/ui/Button'
+import { ButtonLink, ExternalLink } from '../components/ui/Button'
 import { ArchFrame } from '../components/ui/ArchFrame'
 import { RestaurantVisual } from '../components/RestaurantVisual'
 import { HeroMedia } from '../components/ui/HeroMedia'
@@ -23,8 +22,9 @@ import { useAlt } from '../lib/alt'
 import { useTranslation } from 'react-i18next'
 
 import heroImage from '../assets/images/hero-citadel-sunset.webp'
-import heroBanner from '../assets/images/home-hero-aerial.webp'
-import mapImage from '../assets/images/park-map.jpg'
+import heroBanner from '../assets/images/home-hero-park-aerial.jpg'
+import darbImage from '../assets/images/history-monuments-collage.jpg'
+import mapImage from '../assets/images/park-map-wide.jpg'
 import restaurantHilltop from '../assets/images/restaurant-hilltop.webp'
 import restaurantLakeside from '../assets/images/restaurant-lakeside.webp'
 import restaurantMasrawya from '../assets/images/restaurant-masrawya.webp'
@@ -48,22 +48,6 @@ const restaurantImages: Record<string, string> = {
   masrawya: restaurantMasrawya,
 }
 
-// The "Eat & drink" teaser always shows the restaurant name bilingually
-// (English above, Arabic below) regardless of the site's active language —
-// a deliberate exception, independent of the rest of that card's content.
-const restaurantNameEn: Record<string, string> = Object.fromEntries(
-  contentByLang.en.restaurants.list.map((r) => [r.slug, r.name]),
-)
-const restaurantNameAr: Record<string, string> = Object.fromEntries(
-  contentByLang.ar.restaurants.list.map((r) => [r.slug, r.name]),
-)
-const restaurantBrandEn: Record<string, string | undefined> = Object.fromEntries(
-  contentByLang.en.restaurants.list.map((r) => [r.slug, r.brand]),
-)
-const restaurantBrandAr: Record<string, string | undefined> = Object.fromEntries(
-  contentByLang.ar.restaurants.list.map((r) => [r.slug, r.brand]),
-)
-
 // Same order as content.events.venues: Sunken Garden, Open Area, Lake Side Restaurant
 const venueImages = [venueFountainGarden, venueOpenLawn, venueLakesidePavilion]
 
@@ -79,8 +63,12 @@ const galleryPreviewImages = [
   { src: historyBeforeAfter, alt: 'The park, before and after' },
 ]
 
+/** The Al-Darb Al-Ahmar route's own site. A single place to change if the address moves. */
+const DARB_AL_AHMAR_URL = 'https://aldarbalahmar.com/'
+
 export function Home() {
   const content = useContent()
+  const { links } = useSiteData()
   const { lang } = useLanguage()
   const altText = useAlt()
   const { t } = useTranslation()
@@ -159,7 +147,7 @@ export function Home() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 rounded-2xl border border-ink-900/10 bg-sand-50 px-6 py-6 shadow-xl shadow-ink-900/10 md:grid-cols-4 md:gap-8 md:px-10 md:py-8">
               <VisitorBarItem icon={<ClockIcon />} label={content.visitorBar.hoursLabel} value={content.visitorBar.hoursValue} />
               <VisitorBarItem icon={<TicketIcon />} label={content.visitorBar.ticketsLabel} value={content.visitorBar.ticketsValue} to="/tickets" />
-              <VisitorBarItem icon={<PinIcon />} label={content.visitorBar.locationLabel} value={content.visitorBar.locationValue} to="/contact" />
+              <VisitorBarItem icon={<PinIcon />} label={content.visitorBar.locationLabel} value={content.visitorBar.locationValue} href={links.mapsUrl} />
               <VisitorBarItem
                 icon={<ForkIcon />}
                 label={content.visitorBar.restaurantsLabel}
@@ -172,8 +160,8 @@ export function Home() {
       </div>
 
       {/* Stats */}
-      <section className="mt-10 md:mt-14">
-        <Container className="grid grid-cols-2 gap-8 border-b border-ink-900/10 pb-10 md:grid-cols-4 md:pb-12">
+      <section className="mt-6 md:mt-8">
+        <Container className="grid grid-cols-2 gap-8 border-b border-ink-900/10 pb-6 md:grid-cols-4 md:pb-8">
           {content.stats.map((stat, i) => (
             <Reveal key={stat.label} delay={i * 0.06} className="text-center md:text-start">
               <p className="font-display text-4xl font-medium text-teal-800 md:text-5xl">{stat.value}</p>
@@ -186,14 +174,14 @@ export function Home() {
       <ComingSoonCarousel />
 
       {/* Intro */}
-      <section className="py-12 md:py-16">
+      <section className="py-6 md:py-8">
         <Container>
           <SectionHeading eyebrow={content.intro.eyebrow} title={content.intro.title} body={content.intro.body} />
         </Container>
       </section>
 
       {/* Highlights grid */}
-      <section className="pb-14 md:pb-20">
+      <section className="pb-8 md:pb-10">
         <Container>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2 md:h-[560px]">
             {content.highlights.map((item, i) => {
@@ -220,7 +208,7 @@ export function Home() {
       </section>
 
       {/* Plan my day — interactive itinerary teaser */}
-      <section className="pb-14 md:pb-20">
+      <section className="pb-8 md:pb-10">
         <Container>
           <Reveal>
             <div className="relative overflow-hidden rounded-3xl bg-teal-950 px-8 py-12 text-sand-50 md:px-14 md:py-16">
@@ -245,7 +233,7 @@ export function Home() {
       </section>
 
       {/* History teaser */}
-      <section className="relative overflow-hidden bg-teal-900 py-24 text-sand-50 md:py-32">
+      <section className="relative overflow-hidden bg-teal-900 py-14 text-sand-50 md:py-20">
         <LatticePattern id="history-lattice" className="text-gold-500/[0.08]" />
         <Container className="relative grid items-center gap-20 md:grid-cols-2 md:gap-16">
           <Reveal>
@@ -261,7 +249,7 @@ export function Home() {
               </div>
 
               <div className="absolute -start-5 -bottom-6 z-10 w-28 sm:w-36 md:-start-9 md:-bottom-8 md:w-40">
-                <div aria-hidden="true" className="absolute -inset-[3px] bg-sand-50" style={{ clipPath: 'url(#arch-clip)' }} />
+                <div aria-hidden="true" className="absolute -inset-1.5 bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700" style={{ clipPath: 'url(#arch-clip)' }} />
                 <div className="relative">
                   <ArchFrame
                     src={historyRubbleBefore}
@@ -300,11 +288,11 @@ export function Home() {
       </section>
 
       {/* Restaurants teaser */}
-      <section className="py-20 md:py-28">
+      <section className="py-8 md:py-12">
         <Container>
           <SectionHeading eyebrow={content.restaurantsTeaser.eyebrow} title={content.restaurantsTeaser.title} align="center" />
 
-          <div className="mx-auto mt-16 grid max-w-5xl gap-14 md:grid-cols-3 md:gap-10">
+          <div className="mx-auto mt-8 grid max-w-5xl gap-10 md:grid-cols-3 md:gap-10">
             {content.restaurants.list.map((restaurant, i) => (
               <Reveal key={restaurant.slug} delay={i * 0.08}>
                 <a href={`/restaurants/${restaurant.slug}`} className="group block text-center">
@@ -313,15 +301,9 @@ export function Home() {
                     alt={restaurant.name}
                     className="mx-auto w-full max-w-[15rem]"
                   />
-                  <h3 className="font-display mt-6 text-2xl font-medium text-teal-800">{restaurantNameEn[restaurant.slug]}</h3>
-                  <p className="font-display mt-1 text-2xl font-medium text-teal-800" style={{ fontFamily: 'var(--font-arabic)' }}>
-                    {restaurantNameAr[restaurant.slug]}
-                  </p>
-                  <p className="mt-1.5 text-xs font-semibold tracking-[0.2em] text-gold-600 uppercase" aria-hidden={!restaurantBrandEn[restaurant.slug]}>
-                    {restaurantBrandEn[restaurant.slug] ?? ' '}
-                    {restaurantBrandAr[restaurant.slug] ? (
-                      <span style={{ fontFamily: 'var(--font-arabic)' }}> · {restaurantBrandAr[restaurant.slug]}</span>
-                    ) : null}
+                  <h3 className="font-display mt-6 text-2xl font-medium text-teal-800">{restaurant.name}</h3>
+                  <p className="mt-1.5 text-xs font-semibold tracking-[0.2em] text-gold-600 uppercase" aria-hidden={!restaurant.brand}>
+                    {restaurant.brand ? t('byBrand', { brand: restaurant.brand }) : ' '}
                   </p>
                   <p className="font-display mt-2 text-sm italic text-teal-700/70">{restaurant.tagline}</p>
                   <p className="mx-auto mt-4 line-clamp-3 max-w-xs text-sm leading-relaxed text-ink-900/60 md:min-h-[4.5rem]">{restaurant.body}</p>
@@ -333,7 +315,7 @@ export function Home() {
             ))}
           </div>
 
-          <div className="mt-14 text-center">
+          <div className="mt-6 text-center">
             <a href="/restaurants" className="inline-flex items-center gap-2 border-b border-teal-700 pb-1 text-sm font-semibold text-teal-700">
               {content.restaurantsTeaser.cta}
               <ArrowIcon />
@@ -343,17 +325,17 @@ export function Home() {
       </section>
 
       {/* Buy tickets */}
-      <section className="border-y border-ink-900/10 bg-sand-100 py-20 md:py-28">
+      <section className="border-y border-ink-900/10 bg-sand-100 py-8 md:py-12">
         <Container>
           <SectionHeading eyebrow={content.ticketsSection.eyebrow} title={content.ticketsSection.title} body={content.ticketsSection.body} />
-          <Reveal delay={0.1} className="mt-12">
+          <Reveal delay={0.1} className="mt-8">
             <TicketBuilder />
           </Reveal>
         </Container>
       </section>
 
       {/* Events & Venues teaser */}
-      <section className="border-y border-ink-900/10 bg-sand-100 py-20 md:py-28">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading eyebrow={content.eventsTeaser.eyebrow} title={content.eventsTeaser.title} body={content.eventsTeaser.body} className="max-w-xl" />
@@ -366,7 +348,7 @@ export function Home() {
             </a>
           </div>
 
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-8 grid gap-8 md:grid-cols-3">
             {content.events.venues.map((venue, i) => (
               <Reveal key={venue.name} delay={i * 0.08}>
                 <a href="/events" className="group block overflow-hidden rounded-2xl border border-ink-900/10 bg-sand-50">
@@ -378,9 +360,8 @@ export function Home() {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-6">
+                  <div className="px-6 py-5">
                     <h3 className="font-display text-lg font-medium text-ink-900">{venue.name}</h3>
-                    <p className="mt-1 text-sm font-semibold text-teal-700">{venue.capacity}</p>
                   </div>
                 </a>
               </Reveal>
@@ -392,7 +373,7 @@ export function Home() {
       <NewsCarousel />
 
       {/* Gallery preview */}
-      <section className="py-20 md:py-28">
+      <section className="py-8 md:py-12">
         <Container>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <SectionHeading eyebrow={content.galleryTeaser.eyebrow} title={content.galleryTeaser.title} className="max-w-xl" />
@@ -405,7 +386,7 @@ export function Home() {
             </a>
           </div>
 
-          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             {galleryPreviewImages.map((img, i) => (
               <Reveal key={img.src} delay={(i % 6) * 0.05}>
                 <a href="/gallery" className="block aspect-square overflow-hidden rounded-xl bg-teal-900">
@@ -430,37 +411,76 @@ export function Home() {
         </Container>
       </section>
 
-      {/* Plan your visit — final CTA */}
-      <section className="border-t border-ink-900/10 bg-sand-100 py-20 md:py-28">
-        <Container className="grid items-center gap-12 md:grid-cols-2">
+      {/* Al-Darb Al-Ahmar — hands visitors on to the route's own website */}
+      <section className="relative overflow-hidden bg-teal-950 py-14 text-sand-50 md:py-20">
+        <LatticePattern id="darb-lattice" className="text-gold-500/[0.08]" />
+        <Container className="relative grid items-center gap-12 md:grid-cols-[1.05fr_1fr] md:gap-16">
           <Reveal>
-            <Eyebrow>{content.visitTeaser.eyebrow}</Eyebrow>
-            <h2 className="font-display mt-4 text-3xl leading-tight font-medium text-ink-900 md:text-4xl">
-              {content.visitTeaser.title}
-            </h2>
-            <p className="mt-5 text-base leading-relaxed text-ink-900/70 md:text-lg">{content.visitTeaser.body}</p>
-
-            <dl className="mt-8 grid grid-cols-2 gap-6">
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">
-                  {content.visitTeaser.hoursLabel}
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-ink-900">{content.visitTeaser.hours}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">
-                  {content.visitTeaser.addressLabel}
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-ink-900">{content.visitTeaser.address}</dd>
-              </div>
+            <Eyebrow tone="sand">{content.darbSection.eyebrow}</Eyebrow>
+            <h2 className="font-display mt-4 text-3xl leading-tight font-medium md:text-4xl">{content.darbSection.title}</h2>
+            <p className="mt-5 text-base leading-relaxed text-sand-100/80 md:text-lg">{content.darbSection.body}</p>
+            <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-sand-50/15 pt-6">
+              {content.darbSection.stats.map((stat) => (
+                <div key={stat.label}>
+                  <dt className="font-display text-3xl font-medium text-gold-100">{stat.value}</dt>
+                  <dd className="mt-1 text-xs leading-snug text-sand-100/70 md:text-sm">{stat.label}</dd>
+                </div>
+              ))}
             </dl>
-
-            <ButtonLink to="/tickets" className="mt-9">
-              {content.visitTeaser.cta}
-            </ButtonLink>
+            <ExternalLink href={DARB_AL_AHMAR_URL} target="_blank" rel="noopener noreferrer" variant="gold" className="mt-9">
+              {content.darbSection.cta}
+              <ArrowIcon />
+            </ExternalLink>
           </Reveal>
           <Reveal delay={0.1}>
-            <MapViewer src={mapImage} alt={altText('parkMap')} />
+            <div className="relative">
+              <div aria-hidden="true" className="absolute -inset-2.5 rounded-[1.75rem] bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700" />
+              <img src={darbImage} alt={content.darbSection.imageAlt} loading="lazy" className="relative aspect-[4/3] w-full rounded-3xl object-cover shadow-2xl shadow-black/40" />
+            </div>
+          </Reveal>
+        </Container>
+      </section>
+
+      {/* Plan your visit — final CTA */}
+      <section className="border-t border-ink-900/10 bg-sand-100 py-8 md:py-12">
+        <Container>
+          <SectionHeading eyebrow={content.visitTeaser.eyebrow} title={content.visitTeaser.title} body={content.visitTeaser.body} align="center" />
+
+          <Reveal delay={0.05} className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
+            {[
+              { icon: <ClockIcon />, label: content.visitTeaser.hoursLabel, value: content.visitTeaser.hours },
+              { icon: <PinIcon />, label: content.visitTeaser.addressLabel, value: content.visitTeaser.address, href: links.mapsUrl },
+            ].map((item) => {
+              const card = (
+                <>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal-700 text-sand-50">{item.icon}</span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-900/50">{item.label}</p>
+                    <p className="mt-0.5 text-sm font-medium text-ink-900">{item.value}</p>
+                  </div>
+                </>
+              )
+              const cls = 'flex items-center gap-4 rounded-2xl border border-gold-500/25 bg-sand-50 px-5 py-4 shadow-sm'
+              return 'href' in item && item.href ? (
+                <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className={`${cls} transition-shadow hover:shadow-md`}>
+                  {card}
+                </a>
+              ) : (
+                <div key={item.label} className={cls}>
+                  {card}
+                </div>
+              )
+            })}
+          </Reveal>
+
+          <Reveal delay={0.1} className="mt-8 text-center">
+            <ButtonLink to="/tickets">{content.visitTeaser.cta}</ButtonLink>
+          </Reveal>
+
+          <Reveal delay={0.12} className="mx-auto mt-10 max-w-3xl">
+            <div className="rounded-[1.75rem] bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700 p-1.5 shadow-xl shadow-ink-900/15">
+              <MapViewer src={mapImage} alt={altText('parkMap')} className="rounded-3xl border-0 shadow-none" />
+            </div>
           </Reveal>
         </Container>
       </section>
@@ -473,11 +493,14 @@ function VisitorBarItem({
   label,
   value,
   to,
+  href,
 }: {
   icon: React.ReactNode
   label: string
   value: string
   to?: string
+  /** An outside link, opened in a new tab. */
+  href?: string
 }) {
   const inner = (
     <>
@@ -488,6 +511,13 @@ function VisitorBarItem({
       </span>
     </>
   )
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg transition-opacity hover:opacity-70">
+        {inner}
+      </a>
+    )
+  }
   if (to) {
     return (
       <a href={to} className="flex items-center gap-3 rounded-lg transition-opacity hover:opacity-70">

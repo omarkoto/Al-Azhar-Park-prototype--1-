@@ -155,13 +155,15 @@ export class MediaService {
 
   /** Where the file is used, in words an editor understands. */
   async usage(id: string): Promise<string[]> {
-    const [heroes, gallery, menus, eventHeroes, eventGallery, items] = await Promise.all([
+    const [heroes, gallery, menus, eventHeroes, eventGallery, items, journalCovers, journalGallery] = await Promise.all([
       this.prisma.restaurant.findMany({ where: { heroMediaId: id, deletedAt: null }, select: { nameEn: true } }),
       this.prisma.restaurantMedia.findMany({ where: { mediaId: id, restaurant: { deletedAt: null } }, select: { restaurant: { select: { nameEn: true } } } }),
       this.prisma.menu.findMany({ where: { pdfMediaId: id, deletedAt: null }, select: { nameEn: true, restaurant: { select: { nameEn: true } } } }),
       this.prisma.event.findMany({ where: { heroMediaId: id, deletedAt: null }, select: { titleEn: true } }),
       this.prisma.eventMedia.count({ where: { mediaId: id } }),
       this.prisma.menuItem.count({ where: { mediaId: id, deletedAt: null } }),
+      this.prisma.journalArticle.findMany({ where: { coverMediaId: id, deletedAt: null }, select: { titleEn: true } }),
+      this.prisma.journalArticleMedia.count({ where: { mediaId: id, article: { deletedAt: null } } }),
     ]);
     return [
       ...heroes.map((r) => `main photo of ${r.nameEn}`),
@@ -170,6 +172,8 @@ export class MediaService {
       ...eventHeroes.map((e) => `main photo of event ${e.titleEn}`),
       ...(eventGallery > 0 ? [`${eventGallery} event gallery place(s)`] : []),
       ...(items > 0 ? [`${items} menu item(s)`] : []),
+      ...journalCovers.map((a) => `cover of Journal article ${a.titleEn}`),
+      ...(journalGallery > 0 ? [`${journalGallery} Journal gallery place(s)`] : []),
     ];
   }
 

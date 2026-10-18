@@ -149,8 +149,8 @@ test.describe.serial('portal analytics', () => {
 
     // filters narrow the figures and say so
     await admin.goto(`${PORTAL}/analytics/sales?from=${visit}&to=${visit}&basis=visit`)
-    await expect(admin.getByTestId('sales-breakdown')).toContainText('Non-resident visitor')
-    await admin.getByTestId('filter-audience').selectOption({ label: 'Non-resident visitor' })
+    await expect(admin.getByTestId('sales-breakdown')).toContainText('Non-Egyptian')
+    await admin.getByTestId('filter-audience').selectOption({ label: 'Non-Egyptian' })
     await expect(admin.getByText('These figures are for the tickets that match your filters')).toBeVisible()
     await expect(admin.getByTestId('kpi-sales-value')).toHaveText(egp(beforeVisit.kpis.paidSalesMinor + 10000)) // all the sales that day were non-resident
     await admin.getByRole('button', { name: 'Clear filters' }).click()
@@ -222,7 +222,7 @@ test.describe.serial('portal analytics', () => {
     expect(Number(row[10]) * 100).toBeLessThanOrEqual(api.kpis.paidSalesMinor)
 
     // exporting with a filter on the sales page downloads the filtered file
-    await admin.getByTestId('filter-audience').selectOption({ label: 'Non-resident visitor' })
+    await admin.getByTestId('filter-audience').selectOption({ label: 'Non-Egyptian' })
     await expect(admin.getByTestId('sales-report')).toBeVisible()
     const [filtered] = await Promise.all([admin.waitForEvent('download'), admin.getByTestId('export-sales').first().click()])
     const filteredRows = fs.readFileSync((await filtered.path())!, 'utf8').replace(/^\uFEFF/, '').split('\r\n').filter(Boolean).slice(1)

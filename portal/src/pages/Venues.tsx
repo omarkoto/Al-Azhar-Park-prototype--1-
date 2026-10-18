@@ -68,7 +68,7 @@ export function VenuesPage() {
       {error && <Notice tone="error">{error}</Notice>}
       <Card>
         {data && data.length === 0 && <p className="text-sm text-stone-500">No venues yet.</p>}
-        <ul className="divide-y divide-stone-100">
+        <ul className="divide-y divide-sand-100">
           {data?.map((v, i) => (
             <li key={v.id} data-testid="venue-row" className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">

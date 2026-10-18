@@ -43,6 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { to: '/contact', label: 'Contact details', anyOf: ['contact:read'] },
       { to: '/hours', label: 'Opening hours', anyOf: ['hours:read'] },
       { to: '/events', label: 'Events', anyOf: ['events:read'] },
+      { to: '/journal', label: 'Journal', anyOf: ['journal:read'] },
       { to: '/venues', label: 'Venues', anyOf: ['venues:read'] },
       { to: '/restaurants', label: 'Restaurants', anyOf: ['restaurants:read'] },
       { to: '/media', label: 'Media library', anyOf: ['media:read'] },

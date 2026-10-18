@@ -110,14 +110,14 @@ export function TicketBuilder() {
 
         <div className="mt-5">
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-ink-900/50">{t('visitDate')}</span>
+            <span className="mb-3 block text-xs font-semibold uppercase tracking-wide text-ink-900/50">{t('visitDate')}</span>
             <input
               type="date"
               value={visitDate}
               min={catalog.today}
               max={catalog.lastBookableDate}
               onChange={(e) => setVisitDate(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-ink-900/15 bg-sand-50 px-4 py-2.5 text-sm text-ink-900 outline-none focus:border-teal-700 sm:max-w-xs"
+              className="block w-full rounded-xl border border-ink-900/15 bg-sand-50 px-4 py-2.5 text-sm text-ink-900 outline-none focus:border-teal-700 sm:max-w-xs"
             />
           </label>
           {!visitDate ? <p className="mt-3 text-sm text-ink-900/60">{t('bookPickDate')}</p> : dayLoading && !day ? <p className="mt-3 text-sm text-ink-900/60">{t('bookChecking')}</p> : null}

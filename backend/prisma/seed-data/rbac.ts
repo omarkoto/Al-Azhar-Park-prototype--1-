@@ -28,6 +28,10 @@ export const PERMISSIONS: ReadonlyArray<readonly [code: string, description: str
   ['venues:read', 'View event venues'],
   ['venues:write', 'Create and edit event venues, switch them on or off'],
 
+  ['journal:read', 'View Journal articles'],
+  ['journal:write', 'Create and edit Journal articles and their photos'],
+  ['journal:publish', "Change a Journal article's status: published, archived, back to draft"],
+
   ['media:read', 'View uploaded media'],
   ['media:write', 'Upload and delete media'],
 
@@ -90,6 +94,7 @@ export const ROLES: readonly RoleSeed[] = [
       'park:read', 'park:write', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
       'restaurants:read', 'restaurants:write', 'menus:read', 'menus:write',
       'events:read', 'events:write', 'events:publish', 'venues:read', 'venues:write', 'media:read', 'media:write',
+      'journal:read', 'journal:write', 'journal:publish',
       'ticket-types:read', 'ticket-types:write', 'pricing:read', 'pricing:write',
       'customers:read', 'customers:privacy',
       'orders:read', 'orders:cancel', 'payments:read', 'payments:record_cash', 'counter-sales:create',
@@ -130,6 +135,7 @@ export const ROLES: readonly RoleSeed[] = [
       'park:read', 'park:write', 'hours:read', 'hours:write', 'contact:read', 'contact:write',
       'restaurants:read', 'restaurants:write', 'menus:read', 'menus:write',
       'events:read', 'events:write', 'events:publish', 'venues:read', 'venues:write', 'media:read', 'media:write',
+      'journal:read', 'journal:write', 'journal:publish',
       'analytics:content',
     ],
   },
@@ -139,7 +145,7 @@ export const ROLES: readonly RoleSeed[] = [
     description: 'Read-only analytics, orders and tickets. No modification permissions.',
     permissions: [
       'analytics:read', 'orders:read', 'payments:read', 'tickets:read', 'scans:read',
-      'ticket-types:read', 'pricing:read', 'events:read', 'venues:read', 'restaurants:read', 'park:read',
+      'ticket-types:read', 'pricing:read', 'events:read', 'journal:read', 'venues:read', 'restaurants:read', 'park:read',
     ],
   },
 ];

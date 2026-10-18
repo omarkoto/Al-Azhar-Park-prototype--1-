@@ -147,7 +147,7 @@ export function DataTable({ columns, rows, caption, totals, testId }: { columns:
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-stone-100">
+        <tbody className="divide-y divide-sand-100">
           {rows.map((r, ri) => (
             <tr key={ri}>
               {r.map((cell, ci) => (
@@ -177,7 +177,7 @@ export function DataTable({ columns, rows, caption, totals, testId }: { columns:
 /** One headline number with its label and an optional note (a definition, or what it does not include). */
 export function Stat({ label, value, note, testId }: { label: string; value: string; note?: string; testId?: string }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm" data-testid={testId}>
+    <div className="rounded-xl border border-sand-200 bg-white p-4 shadow-sm" data-testid={testId}>
       <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-stone-900" data-testid={testId ? `${testId}-value` : undefined}>
         {value}

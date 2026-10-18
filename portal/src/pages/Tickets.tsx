@@ -140,7 +140,7 @@ export function TicketsPage() {
                   <th className="py-2" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100">
+              <tbody className="divide-y divide-sand-100">
                 {rows.map((t) => (
                   <tr key={t.id} data-testid="ticket-row">
                     <td className="py-2 pr-3 font-mono text-xs font-medium text-stone-900">{t.ref}</td>
@@ -257,7 +257,7 @@ function TicketModal({ id, onClose }: { id: string; onClose: () => void }) {
               {t.scans.length === 0 ? (
                 <p className="text-sm text-stone-500">Not scanned yet.</p>
               ) : (
-                <ul className="divide-y divide-stone-100 text-sm" data-testid="ticket-scans">
+                <ul className="divide-y divide-sand-100 text-sm" data-testid="ticket-scans">
                   {t.scans.map((s) => (
                     <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
                       <span>

@@ -25,7 +25,7 @@ const everyDay = [0, 1, 2, 3, 4, 5, 6].map((d) => day(d))
 const site = (over: Partial<PublicSite> = {}): PublicSite => ({
   park: {
     nameEn: 'Al-Azhar Park', nameAr: 'حديقة الأزهر', taglineEn: null, taglineAr: null, descriptionEn: null, descriptionAr: null,
-    stats: [{ value: '99', labelEn: 'Acres', labelAr: 'فدانًا' }],
+    stats: [{ value: '99', labelEn: 'Feddans', labelAr: 'فدانًا' }],
   },
   contact: {
     addressEn: 'Salah Salem Street', addressAr: 'شارع صلاح سالم', phones: ['0100 111 2222'], fax: null, email: 'hello@alazharpark.com',
@@ -124,7 +124,7 @@ describe('applySiteData', () => {
 
   it('overlays statistics, contact details and hours in the chosen language', () => {
     const out = applySiteData(en, site(), 'en')
-    expect(out.stats).toEqual([{ value: '99', label: 'Acres' }])
+    expect(out.stats).toEqual([{ value: '99', label: 'Feddans' }])
     expect(out.contact.address).toBe('Salah Salem Street')
     expect(out.contact.phones).toEqual(['0100 111 2222'])
     expect(out.contact.email).toBe('hello@alazharpark.com')

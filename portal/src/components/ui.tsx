@@ -6,10 +6,10 @@ const cx = (...parts: Array<string | false | null | undefined>) => parts.filter(
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-teal-700 text-white hover:bg-teal-800 disabled:bg-teal-700/40',
-  secondary: 'border border-stone-300 bg-white text-stone-800 hover:bg-stone-50 disabled:text-stone-400',
+  primary: 'bg-teal-800 text-white shadow-sm hover:bg-teal-900 disabled:bg-teal-800/40',
+  secondary: 'border border-sand-200 bg-white text-teal-900 hover:bg-sand-100 disabled:text-stone-400',
   danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700/40',
-  ghost: 'text-stone-600 hover:bg-stone-100 disabled:text-stone-300',
+  ghost: 'text-teal-800 hover:bg-teal-50 disabled:text-stone-300',
 }
 
 export function Button({ variant = 'primary', busy, className, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; busy?: boolean }) {
@@ -17,7 +17,7 @@ export function Button({ variant = 'primary', busy, className, children, ...rest
     <button
       {...rest}
       disabled={rest.disabled || busy}
-      className={cx('inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed', VARIANTS[variant], className)}
+      className={cx('inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed', VARIANTS[variant], className)}
     >
       {busy && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />}
       {children}
@@ -27,12 +27,12 @@ export function Button({ variant = 'primary', busy, className, children, ...rest
 
 // ───────────────────────────── form fields ─────────────────────────────
 
-const INPUT = 'w-full rounded-lg border bg-white px-3 py-2 text-sm text-stone-900 outline-none transition-colors focus:border-teal-700 disabled:bg-stone-100 disabled:text-stone-500'
+const INPUT = 'w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none transition-colors focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15 disabled:bg-sand-100 disabled:text-stone-500'
 
 export function Field({ label, error, hint, children, htmlFor }: { label: string; error?: string; hint?: string; children: ReactNode; htmlFor?: string }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-semibold tracking-wide text-teal-900/70 uppercase">
         {label}
       </label>
       {children}
@@ -50,7 +50,7 @@ export function TextInput({ label, error, hint, className, rtl, ...rest }: Input
   const id = useId()
   return (
     <Field label={label} error={error} hint={hint} htmlFor={id}>
-      <input id={id} {...rest} dir={rtl ? 'rtl' : undefined} aria-invalid={!!error} className={cx(INPUT, error ? 'border-red-500' : 'border-stone-300', rtl && 'text-right', className)} />
+      <input id={id} {...rest} dir={rtl ? 'rtl' : undefined} aria-invalid={!!error} className={cx(INPUT, error ? 'border-red-500' : 'border-sand-200', rtl && 'text-right', className)} />
     </Field>
   )
 }
@@ -59,7 +59,7 @@ export function TextArea({ label, error, hint, rtl, ...rest }: TextareaHTMLAttri
   const id = useId()
   return (
     <Field label={label} error={error} hint={hint} htmlFor={id}>
-      <textarea id={id} rows={3} {...rest} dir={rtl ? 'rtl' : undefined} aria-invalid={!!error} className={cx(INPUT, error ? 'border-red-500' : 'border-stone-300', rtl && 'text-right')} />
+      <textarea id={id} rows={3} {...rest} dir={rtl ? 'rtl' : undefined} aria-invalid={!!error} className={cx(INPUT, error ? 'border-red-500' : 'border-sand-200', rtl && 'text-right')} />
     </Field>
   )
 }
@@ -68,7 +68,7 @@ export function Select({ label, error, children, ...rest }: React.SelectHTMLAttr
   const id = useId()
   return (
     <Field label={label} error={error} htmlFor={id}>
-      <select id={id} {...rest} className={cx(INPUT, error ? 'border-red-500' : 'border-stone-300')}>
+      <select id={id} {...rest} className={cx(INPUT, error ? 'border-red-500' : 'border-sand-200')}>
         {children}
       </select>
     </Field>
@@ -88,11 +88,11 @@ export function Checkbox({ label, checked, onChange, disabled }: { label: ReactN
 
 export function Card({ title, description, children, actions }: { title?: string; description?: string; children: ReactNode; actions?: ReactNode }) {
   return (
-    <section className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm md:p-6">
+    <section className="rounded-2xl border border-sand-200 bg-white p-5 shadow-[0_1px_2px_rgb(33_29_23/0.04)] md:p-6">
       {(title || actions) && (
         <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            {title && <h2 className="text-base font-semibold text-stone-900">{title}</h2>}
+            {title && <h2 className="font-display text-lg font-semibold text-teal-900">{title}</h2>}
             {description && <p className="mt-1 text-sm text-stone-500">{description}</p>}
           </div>
           {actions}
@@ -105,8 +105,9 @@ export function Card({ title, description, children, actions }: { title?: string
 
 export function PageHeader({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold text-stone-900">{title}</h1>
+    <div className="mb-8 border-b border-sand-200 pb-5">
+      <span className="mb-3 block h-0.5 w-10 rounded bg-gold-500" aria-hidden="true" />
+      <h1 className="font-display text-3xl font-semibold text-teal-900">{title}</h1>
       {description && <p className="mt-1 max-w-2xl text-sm text-stone-500">{description}</p>}
     </div>
   )
@@ -136,7 +137,7 @@ export function Spinner({ label = 'Loading…' }: { label?: string }) {
 }
 
 export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'teal' | 'amber' | 'red' }) {
-  const tones = { neutral: 'bg-stone-100 text-stone-700', teal: 'bg-teal-50 text-teal-800', amber: 'bg-amber-50 text-amber-800', red: 'bg-red-50 text-red-800' }
+  const tones = { neutral: 'bg-sand-100 text-stone-700', teal: 'bg-teal-100 text-teal-800', amber: 'bg-gold-100 text-gold-700', red: 'bg-red-50 text-red-800' }
   return <span className={cx('inline-block rounded-full px-2 py-0.5 text-xs font-medium', tones[tone])}>{children}</span>
 }
 
@@ -147,10 +148,10 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-900/50 p-4 md:p-10" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
-        <header className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-          <h2 className="text-base font-semibold text-stone-900">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-teal-950/60 p-4 backdrop-blur-sm md:p-10" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between border-b border-sand-200 px-5 py-4">
+          <h2 className="font-display text-lg font-semibold text-teal-900">{title}</h2>
           <button onClick={onClose} aria-label="Close" className="rounded p-1 text-stone-500 hover:bg-stone-100">
             ✕
           </button>
@@ -183,7 +184,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="pointer-events-none fixed right-4 bottom-4 z-[60] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={cx('pointer-events-auto rounded-lg px-4 py-3 text-sm shadow-lg', t.tone === 'success' ? 'bg-emerald-700 text-white' : 'bg-red-700 text-white')}>
+          <div key={t.id} className={cx('pointer-events-auto rounded-xl px-4 py-3 text-sm shadow-lg', t.tone === 'success' ? 'bg-teal-800 text-white' : 'bg-red-700 text-white')}>
             {t.text}
           </div>
         ))}

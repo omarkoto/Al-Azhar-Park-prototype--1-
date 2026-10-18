@@ -28,10 +28,10 @@ describe('park form', () => {
   it('trims text and maps empty optional fields to null', () => {
     const out = formToPark({
       nameEn: ' Al-Azhar Park ', nameAr: 'حديقة الأزهر', taglineEn: '  ', taglineAr: '', descriptionEn: 'x', descriptionAr: '',
-      stats: [{ value: ' 72 ', labelEn: ' Acres ', labelAr: 'فدان' }],
+      stats: [{ value: ' 71 ', labelEn: ' Feddans ', labelAr: 'فدان' }],
     })
     expect(out).toMatchObject({ nameEn: 'Al-Azhar Park', taglineEn: null, taglineAr: null, descriptionEn: 'x', descriptionAr: null })
-    expect(out.stats).toEqual([{ value: '72', labelEn: 'Acres', labelAr: 'فدان' }])
+    expect(out.stats).toEqual([{ value: '71', labelEn: 'Feddans', labelAr: 'فدان' }])
   })
 })
 

@@ -83,7 +83,7 @@ export function Home() {
           ) : (
             <div className="mt-2 overflow-x-auto">
               <table className="w-full min-w-[30rem] text-left text-sm" data-testid="recent-scans">
-                <tbody className="divide-y divide-stone-100">
+                <tbody className="divide-y divide-sand-100">
                   {data.entry.recent.map((s) => (
                     <tr key={s.id}>
                       <td className="py-1.5 pr-3 whitespace-nowrap text-stone-500">{formatMoment(s.scannedAt)}</td>
@@ -108,7 +108,7 @@ export function Home() {
       <div className="grid gap-4 lg:grid-cols-2">
         {data?.gates && (
           <Card title="Gates">
-            <ul className="divide-y divide-stone-100" data-testid="gates-today">
+            <ul className="divide-y divide-sand-100" data-testid="gates-today">
               {data.gates.map((g) => (
                 <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                   <span className="font-medium text-stone-900">{g.nameEn}</span>
@@ -138,7 +138,7 @@ export function Home() {
           {data.activity.length === 0 ? (
             <p className="text-sm text-stone-500">Nothing yet.</p>
           ) : (
-            <ul className="divide-y divide-stone-100" data-testid="activity">
+            <ul className="divide-y divide-sand-100" data-testid="activity">
               {data.activity.map((a) => (
                 <li key={a.id} className="flex flex-wrap justify-between gap-2 py-1.5 text-sm">
                   <span>
@@ -211,7 +211,7 @@ function EventList({ title, events, empty }: { title: string; events: NonNullabl
       {events.length === 0 ? (
         <p className="mt-1 text-sm text-stone-500">{empty}</p>
       ) : (
-        <ul className="mt-1 divide-y divide-stone-100" data-testid={`events-${title.toLowerCase().replace(' ', '-')}`}>
+        <ul className="mt-1 divide-y divide-sand-100" data-testid={`events-${title.toLowerCase().replace(' ', '-')}`}>
           {events.map((e) => (
             <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-sm">
               <Link to={`/events/${e.id}`} className="font-medium text-teal-900 hover:underline">

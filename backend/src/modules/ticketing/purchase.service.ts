@@ -180,7 +180,7 @@ export class PurchaseService {
     }
 
     const audience = await db.ticketAudience.findUnique({ where: { code: input.audience } });
-    if (!audience || !audience.isActive) throw new AppException('INVALID_AUDIENCE', 'Choose Egyptian / resident or non-resident visitor.', 422);
+    if (!audience || !audience.isActive) throw new AppException('INVALID_AUDIENCE', 'Choose Egyptian or Non-Egyptian.', 422);
 
     const totalTickets = input.items.reduce((n, i) => n + i.quantity, 0);
     if (totalTickets > cfg.maxTicketsPerOrder) {

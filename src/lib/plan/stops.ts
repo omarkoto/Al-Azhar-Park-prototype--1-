@@ -1,13 +1,13 @@
 import type { Lang } from '../../content'
 import entranceImg from '../../assets/images/tickets-hero-entrance.webp'
-import palmsImg from '../../assets/images/experiences-collage.webp'
-import lakesideImg from '../../assets/images/restaurant-lakeside.webp'
+import palmsImg from '../../assets/images/plan-royal-palm-promenade.jpg'
+import lakesideImg from '../../assets/images/lakeside-hero-panorama.jpg'
 import masrawyaImg from '../../assets/images/restaurant-masrawya.webp'
 import telescopeImg from '../../assets/images/visitor-info-garden.webp'
 import wallImg from '../../assets/images/history-monuments-collage.jpg'
 import amphitheatreImg from '../../assets/images/events-hero.webp'
 import playImg from '../../assets/images/venue-open-area.webp'
-import hilltopImg from '../../assets/images/restaurant-hilltop.webp'
+import hilltopImg from '../../assets/images/hilltop-sunset.jpg'
 
 export type Mood = 'calm' | 'scenic' | 'foodie' | 'culture'
 
@@ -144,7 +144,7 @@ export const stops: Stop[] = [
     sunset: true,
     restaurantSlug: 'hilltop',
     image: hilltopImg,
-    name: { en: 'Hill-top & Citadel View', ar: 'مطعم القمة وإطلالة القلعة' },
+    name: { en: 'Hill-Top & Citadel View', ar: 'مطعم القلعة وإطلالة القلعة' },
     blurb: {
       en: 'Dine in a Fatimid-style building with a panoramic view of Old Cairo.',
       ar: 'عشاء في مبنى بطراز فاطمي تطل منه بانوراما القاهرة القديمة.',

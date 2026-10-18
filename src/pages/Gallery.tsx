@@ -80,13 +80,8 @@ export function Gallery() {
                       src={resolveImage(image.src)}
                       alt={image.caption}
                       loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      className="h-full w-full object-cover"
                     />
-                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-teal-950/85 via-teal-950/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden="true" />
-                    <span className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-                      <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-100">{image.category}</span>
-                      <span className="mt-1 block text-sm leading-snug text-sand-50">{image.caption}</span>
-                    </span>
                   </button>
                 </Reveal>
               )

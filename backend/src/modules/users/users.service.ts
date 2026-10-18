@@ -1,3 +1,4 @@
+import { passwordProblem } from '../auth/password-policy';
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -70,15 +71,20 @@ export class UsersService {
   }
 
   /**
-   * Invites a person: the account starts with a random password nobody knows, and a one-time link lets them
-   * choose their own. An administrator therefore never sees or sets anyone's password.
+   * Creates an account. With a password the administrator sets it (it must pass the password policy and is only
+   * ever stored as an Argon2id hash); without one the account starts with a random password nobody knows and a
+   * one-time link lets the person choose their own.
    */
-  async create(dto: { email: string; fullName: string; roleCodes: string[] }, actor: AuthenticatedUser, ctx: RequestContext): Promise<UserView> {
+  async create(dto: { email: string; fullName: string; roleCodes: string[]; password?: string }, actor: AuthenticatedUser, ctx: RequestContext): Promise<UserView> {
     const roles = await this.rolesFor(dto.roleCodes, actor);
     if (await this.prisma.user.findUnique({ where: { email: dto.email }, select: { id: true } })) {
       throw new AppException('EMAIL_ALREADY_USED', 'A user with this e-mail already exists.', 409);
     }
-    const passwordHash = await hashPassword(randomBytes(32).toString('base64url'));
+    if (dto.password !== undefined) {
+      const problem = passwordProblem(dto.password, { email: dto.email, fullName: dto.fullName });
+      if (problem) throw new AppException('WEAK_PASSWORD', problem, 422);
+    }
+    const passwordHash = await hashPassword(dto.password ?? randomBytes(32).toString('base64url'));
     const created = await this.prisma.user.create({
       data: {
         email: dto.email, fullName: dto.fullName, passwordHash,
@@ -90,7 +96,7 @@ export class UsersService {
       { userId: actor.id, action: AuditAction.USER_CREATED, entity: 'user', entityId: created.id, newValue: { email: created.email, roles: dto.roleCodes } },
       ctx,
     );
-    await this.auth.issuePasswordLink(created, 'invite');
+    if (dto.password === undefined) await this.auth.issuePasswordLink(created, 'invite');
     return view(created);
   }
 

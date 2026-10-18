@@ -2,7 +2,7 @@ import type { Lang } from '../../content'
 import type { Arrival } from './generate'
 import type { Mood } from './stops'
 
-interface PlanCopy {
+export interface PlanCopy {
   eyebrow: string
   title: string
   lead: string
@@ -29,6 +29,16 @@ interface PlanCopy {
   addTickets: string
   ticketsAdded: string
   openRestaurant: string
+  stopOf: (i: number, n: number) => string
+  arriveAt: string
+  timeHere: string
+  minutes: (n: number) => string
+  goodForKids: string
+  kidsOnly: string
+  sunsetSpot: string
+  close: string
+  prevStop: string
+  nextStop: string
   planTitle: string
   stopsCount: (n: number) => string
   ctaTitle: string
@@ -46,8 +56,8 @@ export const planCopy: Record<Lang, PlanCopy> = {
     adults: 'Adults',
     children: 'Children (2–8)',
     guests: 'Who is coming',
-    resident: 'Egyptian / resident',
-    visitor: 'Visitor',
+    resident: 'Egyptian',
+    visitor: 'Non-Egyptian',
     arrival: 'Arrive in the',
     arrivals: { morning: 'Morning', afternoon: 'Afternoon', sunset: 'Golden hour' },
     duration: 'How long',
@@ -64,6 +74,16 @@ export const planCopy: Record<Lang, PlanCopy> = {
     addTickets: 'Add tickets to cart',
     ticketsAdded: 'Added to your cart',
     openRestaurant: 'View restaurant',
+    stopOf: (i, n) => `Stop ${i} of ${n}`,
+    arriveAt: 'Arrive',
+    timeHere: 'Time here',
+    minutes: (n) => `${n} min`,
+    goodForKids: 'Great with children',
+    kidsOnly: 'Made for children',
+    sunsetSpot: 'Best sunset view',
+    close: 'Close',
+    prevStop: 'Previous stop',
+    nextStop: 'Next stop',
     planTitle: 'My day at Al-Azhar Park',
     stopsCount: (n) => `${n} stops`,
     ctaTitle: 'Not sure how to spend your day?',
@@ -79,8 +99,8 @@ export const planCopy: Record<Lang, PlanCopy> = {
     adults: 'بالغون',
     children: 'أطفال (٢–٨)',
     guests: 'من سيأتي',
-    resident: 'مصري / مقيم',
-    visitor: 'زائر',
+    resident: 'مصري',
+    visitor: 'غير مصري',
     arrival: 'الوصول في',
     arrivals: { morning: 'الصباح', afternoon: 'بعد الظهر', sunset: 'الساعة الذهبية' },
     duration: 'المدة',
@@ -97,6 +117,16 @@ export const planCopy: Record<Lang, PlanCopy> = {
     addTickets: 'أضف التذاكر إلى السلة',
     ticketsAdded: 'تمت الإضافة إلى السلة',
     openRestaurant: 'عرض المطعم',
+    stopOf: (i, n) => `المحطة ${i.toLocaleString('ar-EG')} من ${n.toLocaleString('ar-EG')}`,
+    arriveAt: 'الوصول',
+    timeHere: 'المدة هنا',
+    minutes: (n) => `${n.toLocaleString('ar-EG')} دقيقة`,
+    goodForKids: 'مناسبة للأطفال',
+    kidsOnly: 'مخصصة للأطفال',
+    sunsetSpot: 'أفضل إطلالة على الغروب',
+    close: 'إغلاق',
+    prevStop: 'المحطة السابقة',
+    nextStop: 'المحطة التالية',
     planTitle: 'يومي في حديقة الأزهر',
     stopsCount: (n) => `${n.toLocaleString('ar-EG')} ${n <= 10 ? 'محطات' : 'محطة'}`,
     ctaTitle: 'لا تعرف كيف تقضي يومك؟',

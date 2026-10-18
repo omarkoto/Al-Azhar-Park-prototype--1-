@@ -24,7 +24,7 @@ export function NewsCarousel() {
   const slides = items.length > 1 ? [...items, items[0]] : items
 
   return (
-    <section className="border-y border-ink-900/10 bg-sand-100 py-20 md:py-28">
+    <section className="border-y border-ink-900/10 bg-sand-100 py-8 md:py-12">
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading eyebrow={newsSection.eyebrow} title={newsSection.title} body={newsSection.body} className="max-w-xl" />
@@ -141,9 +141,11 @@ function NewsCard({
           </span>
         </div>
         <div className="p-5">
-          <p className="text-xs text-ink-900/45" dir="ltr">
-            {item.date}
-          </p>
+          {item.date ? (
+            <p className="text-xs text-ink-900/45" dir="ltr">
+              {item.date}
+            </p>
+          ) : null}
           <h3 className="font-display mt-1.5 line-clamp-2 text-base font-medium leading-snug text-ink-900 transition-colors group-hover:text-teal-700">
             {item.title}
           </h3>

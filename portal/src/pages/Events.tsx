@@ -92,7 +92,7 @@ export function EventsPage() {
       {items && items.length > 0 && !reorderable && canWrite && <p className="text-xs text-stone-500">Clear the search and status filter to change the order.</p>}
       <ul className="space-y-3">
         {items?.map((e, i) => (
-          <li key={e.id} data-testid="event-row" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
+          <li key={e.id} data-testid="event-row" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-200 bg-white p-4 shadow-sm">
             <div className="flex min-w-0 items-center gap-4">
               {e.hero ? <img src={assetUrl(e.hero.url)} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-xs text-stone-400">No photo</div>}
               <div className="min-w-0">
@@ -148,7 +148,7 @@ export function EventEditor() {
       </Link>
       <PageHeader title={isNew ? 'New event' : (data?.titleEn ?? 'Event')} description={isNew ? 'It starts as a draft. Publish it when it is ready.' : `Address: /events/${data?.slug}`} />
       {data && <StatusPanel event={data} onChanged={setData} />}
-      <div role="tablist" className="flex gap-1 border-b border-stone-200">
+      <div role="tablist" className="flex gap-1 border-b border-sand-200">
         {(['details', 'photos'] as Tab[]).map((t) => (
           <button
             key={t}
@@ -390,7 +390,7 @@ function PhotosTab({ event, onChanged }: { event: EventData; onChanged: (e: Even
         {gallery.length === 0 && <p className="text-sm text-stone-500">No gallery photos.</p>}
         <ul className="space-y-3">
           {gallery.map((g, i) => (
-            <li key={g.media.id} className="grid items-center gap-3 rounded-lg border border-stone-200 p-3 sm:grid-cols-[5rem_1fr_1fr_auto]" data-testid="event-gallery-item">
+            <li key={g.media.id} className="grid items-center gap-3 rounded-lg border border-sand-200 p-3 sm:grid-cols-[5rem_1fr_1fr_auto]" data-testid="event-gallery-item">
               <img src={assetUrl(g.media.url)} alt="" className="h-16 w-20 rounded object-cover" />
               <TextInput label="Caption (English)" value={g.captionEn ?? ''} disabled={!canWrite} onChange={(e) => setGallery(gallery.map((x, j) => (j === i ? { ...x, captionEn: e.target.value } : x)))} />
               <TextInput label="Caption (Arabic)" rtl value={g.captionAr ?? ''} disabled={!canWrite} onChange={(e) => setGallery(gallery.map((x, j) => (j === i ? { ...x, captionAr: e.target.value } : x)))} />

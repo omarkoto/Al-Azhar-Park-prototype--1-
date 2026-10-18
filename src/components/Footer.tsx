@@ -8,10 +8,8 @@ import { BrandMark } from './BrandMark'
 
 export function Footer() {
   const content = useContent()
-  const { site, links } = useSiteData()
+  const { links } = useSiteData()
   const { t } = useTranslation()
-  // With live data an icon appears only if the portal has a link for it; without it, the built-in placeholders stay.
-  const social = (key: 'facebook' | 'instagram') => (site ? (site.contact.socialLinks[key] ?? null) : '#')
   const year = new Date().getFullYear()
 
   return (
@@ -70,18 +68,14 @@ export function Footer() {
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-100">{content.contact.socialTitle}</h3>
           <div className="mt-4 flex gap-3">
-            {social('facebook') && (
-              <SocialIcon label="Facebook" href={social('facebook')!}>
+            <SocialIcon label="Facebook" href={links.facebookUrl}>
               <path d="M13.5 9H15V6.5h-1.6C11.3 6.5 10 7.9 10 9.9V11H8.5v2.5H10V19h2.5v-5.5H14l.5-2.5h-2V10c0-.6.3-1 1-1Z" />
             </SocialIcon>
-            )}
-            {social('instagram') && (
-              <SocialIcon label="Instagram" href={social('instagram')!}>
+            <SocialIcon label="Instagram" href={links.instagramUrl}>
               <rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="currentColor" strokeWidth="1.4" />
               <circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.4" />
               <circle cx="16.2" cy="7.8" r="0.9" />
             </SocialIcon>
-            )}
           </div>
         </div>
       </Container>
@@ -101,7 +95,8 @@ function SocialIcon({ children, label, href }: { children: React.ReactNode; labe
   return (
     <a
       href={href}
-      {...(href !== '#' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      target="_blank"
+      rel="noopener noreferrer"
       aria-label={label}
       className="flex h-9 w-9 items-center justify-center rounded-full border border-sand-100/20 text-sand-100/80 transition-colors hover:border-sand-50 hover:text-sand-50"
     >

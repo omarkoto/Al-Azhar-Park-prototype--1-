@@ -4,6 +4,7 @@ import { useAlt, useCredit } from '../lib/alt'
 import { telHref } from '../lib/location'
 import { useSiteData } from '../lib/siteData'
 import { useSeo } from '../lib/seo'
+import { apiPost } from '../lib/api'
 import { Container } from '../components/ui/Container'
 import { Reveal } from '../components/ui/Reveal'
 import { PageHero } from '../components/PageHero'
@@ -18,10 +19,27 @@ export function Contact() {
   const { links } = useSiteData()
   useSeo({ title: contact.title, description: contact.lead, path: '/contact' })
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [failed, setFailed] = useState(false)
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSent(true)
+    const data = new FormData(e.currentTarget)
+    setSending(true)
+    setFailed(false)
+    try {
+      await apiPost('/public/contact-message', {
+        name: String(data.get('name') ?? ''),
+        email: String(data.get('email') ?? ''),
+        message: String(data.get('message') ?? ''),
+        website: String(data.get('website') ?? ''),
+      })
+      setSent(true)
+    } catch {
+      setFailed(true)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -61,6 +79,17 @@ export function Contact() {
                 </a>
               </div>
             )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.socialTitle}</p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <ExternalLink href={links.facebookUrl} target="_blank" rel="noopener noreferrer" variant="ghost" className="border-ink-900/20 text-xs text-ink-900">
+                  Facebook
+                </ExternalLink>
+                <ExternalLink href={links.instagramUrl} target="_blank" rel="noopener noreferrer" variant="ghost" className="border-ink-900/20 text-xs text-ink-900">
+                  Instagram
+                </ExternalLink>
+              </div>
+            </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-900/50">{contact.mapTitle}</p>
               <div className="mt-3 overflow-hidden rounded-2xl border border-ink-900/10 shadow-sm">
@@ -105,8 +134,14 @@ export function Contact() {
                     className="mt-2 w-full rounded-xl border border-ink-900/15 bg-sand-50 px-4 py-3 text-sm text-ink-900 outline-none transition-colors focus:border-teal-700"
                   />
                 </div>
-                <Button type="submit" className="w-full sm:w-auto">
-                  {contact.formSubmit}
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
+                {failed ? (
+                  <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {contact.formError}
+                  </p>
+                ) : null}
+                <Button type="submit" disabled={sending} className="w-full sm:w-auto">
+                  {sending ? contact.formSending : contact.formSubmit}
                 </Button>
                 <p className="text-xs text-ink-900/45">{contact.formNote}</p>
               </form>

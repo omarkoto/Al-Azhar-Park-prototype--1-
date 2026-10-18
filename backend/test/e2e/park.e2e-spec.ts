@@ -39,7 +39,7 @@ describe('park content: contact, information, opening hours (e2e)', () => {
   const validPark = {
     nameEn: 'Al-Azhar Park', nameAr: 'حديقة الأزهر', taglineEn: 'The green heart of Cairo', taglineAr: 'القلب الأخضر للقاهرة',
     descriptionEn: 'A park.', descriptionAr: 'حديقة.',
-    stats: [{ value: '72', labelEn: 'Acres', labelAr: 'فدانًا' }],
+    stats: [{ value: '71', labelEn: 'Feddans', labelAr: 'فدانًا' }],
   };
   const validContact = {
     addressEn: 'Salah Salem Street, Cairo', addressAr: 'شارع صلاح سالم، القاهرة', phones: ['(202) 2510 3868'], fax: null, email: 'info@alazharpark.com',
@@ -141,7 +141,7 @@ describe('park content: contact, information, opening hours (e2e)', () => {
   // ───────────────────────── park information ─────────────────────────
   describe('park information', () => {
     it('stores English and Arabic content exactly, including Arabic digits and diacritics', async () => {
-      const arabic = { ...validPark, taglineAr: 'القَلْبُ الأخضر للقاهرة التاريخية ٢٠٢٦', stats: [{ value: '٧٢', labelEn: 'Acres', labelAr: 'فدانًا من الحدائق' }] };
+      const arabic = { ...validPark, taglineAr: 'القَلْبُ الأخضر للقاهرة التاريخية ٢٠٢٦', stats: [{ value: '٧١', labelEn: 'Feddans', labelAr: 'فدانًا من الحدائق' }] };
       const res = await call('put', '/park', 'content', arabic).expect(200);
       expect(res.body.data.taglineAr).toBe(arabic.taglineAr);
       const stored = await prisma.parkSettings.findUniqueOrThrow({ where: { id: 1 } });

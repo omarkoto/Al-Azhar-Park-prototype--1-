@@ -24,6 +24,7 @@ PostgreSQL 16+ · Prisma 6 · 38 tables · schema in `backend/prisma/schema.pris
 | Tickets & entry | `tickets`, `ticket_scans` |
 | Park content | `park_settings`, `contact_information`, `opening_hours`, `special_hours` |
 | Events | `venues`, `events`, `event_media` |
+| Journal | `journal_articles`, `journal_article_media` (see [journal.md](journal.md)) |
 | Restaurants | `restaurants`, `restaurant_media`, `menus`, `menu_categories`, `menu_items` |
 | Files | `media` (metadata only — binaries live in the storage provider, never in PostgreSQL) |
 | Operations | `contact_messages`, `reservation_requests`, `notifications`, `audit_logs`, `system_settings` |
@@ -58,10 +59,10 @@ A **PAID order produces VALID tickets**; a successful scan moves **VALID → USE
 
 | | Weekday (Sun–Thu) | Weekend (Fri–Sat) |
 |---|---|---|
-| Egyptian / resident — adult | 50 | 60 |
-| Egyptian / resident — child | 35 | 40 |
-| Non-resident visitor — adult | 150 | 200 |
-| Non-resident visitor — child | 100 | 150 |
+| Egyptian — adult | 50 | 60 |
+| Egyptian — child | 35 | 40 |
+| Non-Egyptian — adult | 150 | 200 |
+| Non-Egyptian — child | 100 | 150 |
 
 ### Historical prices can never change
 - `order_items` stores the price used (`unit_price_minor`, names, which `ticket_price_id`), and `tickets.price_paid_minor` stores it per ticket.

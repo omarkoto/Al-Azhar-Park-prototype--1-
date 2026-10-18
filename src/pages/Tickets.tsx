@@ -13,6 +13,7 @@ import { TicketBuilder } from '../components/TicketBuilder'
 import { pounds, useBookingCatalog } from '../lib/booking'
 import { useMoney } from '../lib/alt'
 import { useTranslation } from 'react-i18next'
+import logoMark from '../assets/brand/logo-mark.svg'
 import ticketsHero from '../assets/images/tickets-hero-entrance.webp'
 
 export function Tickets() {
@@ -59,43 +60,67 @@ export function Tickets() {
       </section>
 
       {/* Reference price table */}
-      <section className="border-b border-ink-900/10 py-20 md:py-28">
-        <Container>
-          <div className="grid gap-8 md:grid-cols-2">
-            {visit.ticketGroups.map((group, i) => (
-              <Reveal
-                key={group.title}
-                delay={i * 0.08}
-                className="overflow-hidden rounded-2xl border border-ink-900/10 bg-sand-100"
-              >
-                <div className="border-b border-ink-900/10 px-6 py-5">
-                  <h3 className="font-display text-lg font-medium text-ink-900">{group.title}</h3>
-                  <p className="mt-1 text-xs text-ink-900/50">{group.note}</p>
-                </div>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-xs uppercase tracking-wide text-ink-900/40">
-                      <th className="px-6 py-3 text-start font-medium"> </th>
-                      <th className="px-6 py-3 text-start font-medium">{visit.weekdayLabel}</th>
-                      <th className="px-6 py-3 text-start font-medium">{visit.weekendLabel}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-ink-900/10">
-                    {group.rows.map((row, r) => (
-                      <tr key={row.label}>
-                        <td className="px-6 py-3 font-medium text-ink-900">{row.label}</td>
-                        <td className="px-6 py-3 text-ink-900/75" dir="ltr">
-                          {live(i, r, 'weekdayMinor') ?? row.weekday}
-                        </td>
-                        <td className="px-6 py-3 text-ink-900/75" dir="ltr">
-                          {live(i, r, 'weekendMinor') ?? row.weekend}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Reveal>
-            ))}
+      <section className="relative overflow-hidden border-b border-ink-900/10 py-20 md:py-28">
+        <LatticePattern id="price-lattice" className="text-teal-900/[0.04]" />
+        <Container className="relative">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-3">
+              <RosetteIcon className="h-5 w-5 shrink-0 text-gold-600" />
+              <Eyebrow>{visit.ticketsTitle}</Eyebrow>
+            </span>
+          </Reveal>
+
+          <div className="mt-12 grid gap-8 md:grid-cols-2 md:gap-10">
+            {visit.ticketGroups.map((group, i) => {
+              const dark = i === 0
+              return (
+                <Reveal key={group.title} delay={i * 0.1}>
+                  <article className="group relative h-full rounded-[1.75rem] bg-gradient-to-br from-gold-500 via-gold-600/90 to-gold-700 p-[2px] shadow-xl shadow-ink-900/10 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-ink-900/20">
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(1.75rem-2px)] bg-sand-50">
+                      <header className={`relative overflow-hidden px-7 py-7 ${dark ? 'bg-teal-900 text-sand-50' : 'bg-teal-950 text-sand-50'}`}>
+                        <LatticePattern id={`price-head-${i}`} className="text-gold-500/[0.12]" />
+                        <span aria-hidden="true" className="pointer-events-none absolute -end-10 -top-10 h-36 w-36 rounded-full bg-gold-500/20 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+                        <div className="relative flex items-center gap-4">
+                          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-gold-500/60 bg-sand-50 shadow-lg shadow-teal-950/30">
+                            <img src={logoMark} alt="" className="h-9 w-9 select-none" draggable={false} />
+                          </span>
+                          <div className="min-w-0">
+                            <h3 className="font-display text-2xl font-medium">{group.title}</h3>
+                            <p className="mt-1 text-xs leading-snug text-sand-100/70">{group.note}</p>
+                          </div>
+                        </div>
+                      </header>
+
+                      <div className="flex-1 px-5 py-6 sm:px-7">
+                        <div className="grid grid-cols-[1fr_1fr] gap-3 ps-0 sm:grid-cols-[1.2fr_1fr_1fr]">
+                          <span className="hidden sm:block" />
+                          {[visit.weekdayLabel, visit.weekendLabel].map((label) => (
+                            <span key={label} className="rounded-full border border-gold-500/40 bg-gold-100/50 px-3 py-1 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-700">
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                          {group.rows.map((row, r) => (
+                            <div key={row.label} className="rounded-2xl border border-ink-900/10 bg-sand-100/70 p-3 transition-colors duration-300 hover:border-gold-500/50 hover:bg-gold-100/40 sm:grid sm:grid-cols-[1.2fr_1fr_1fr] sm:items-center sm:gap-3 sm:p-4">
+                              <p className="font-display mb-2 text-base font-medium text-ink-900 sm:mb-0">{row.label}</p>
+                              <div className="grid grid-cols-2 gap-3 sm:contents">
+                                {(['weekdayMinor', 'weekendMinor'] as const).map((kind) => (
+                                  <p key={kind} dir="ltr" className="font-display text-center text-2xl font-medium text-teal-800 sm:text-3xl">
+                                    {live(i, r, kind) ?? (kind === 'weekdayMinor' ? row.weekday : row.weekend)}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </Reveal>
+              )
+            })}
           </div>
         </Container>
       </section>

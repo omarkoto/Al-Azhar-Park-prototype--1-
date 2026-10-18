@@ -17,6 +17,8 @@ export class CreateUserDto extends createZodDto(
     email: z.string().trim().toLowerCase().email().max(254),
     fullName: z.string().trim().min(2).max(120),
     roleCodes,
+    /** optional: when given, the account is created ready to use with this password; otherwise a one-time invite link is issued */
+    password: z.string().min(1).max(128).optional(),
   }),
 ) {}
 

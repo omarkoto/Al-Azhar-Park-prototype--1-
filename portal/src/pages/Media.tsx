@@ -112,7 +112,7 @@ export function MediaLibrary({ pick, kind: fixedKind, onPick }: { pick?: boolean
       {items && items.length > 0 && (
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" data-testid="media-grid">
           {items.map((m) => (
-            <li key={m.id} className="overflow-hidden rounded-lg border border-stone-200 bg-white" data-testid="media-item">
+            <li key={m.id} className="overflow-hidden rounded-lg border border-sand-200 bg-white" data-testid="media-item">
               <div className="flex aspect-[4/3] items-center justify-center bg-stone-100">
                 {m.kind === 'image' ? <img src={assetUrl(m.url)} alt={m.altEn ?? ''} loading="lazy" className="h-full w-full object-cover" /> : <span className="text-3xl" aria-hidden="true">📄</span>}
               </div>

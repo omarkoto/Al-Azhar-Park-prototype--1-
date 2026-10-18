@@ -125,7 +125,7 @@ test.describe.serial('park content: portal edits reach the public website', () =
 
   test('the website keeps its own marketing copy: the CMS tagline does not replace it', async ({ browser }) => {
     const site = await freshSitePage(browser, '/')
-    await expect(site.getByText('A garden above a thousand years of city.')).toBeVisible({ timeout: 15_000 })
+    await expect(site.getByText('The green lung in the heart of Cairo.')).toBeVisible({ timeout: 15_000 })
     await expect(site.getByText('edited in the browser test')).toHaveCount(0)
     await site.context().close()
   })

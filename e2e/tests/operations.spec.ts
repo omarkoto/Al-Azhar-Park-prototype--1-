@@ -72,7 +72,7 @@ test.describe.serial('portal operations', () => {
     // gates and events
     await expect(admin.getByTestId('gates-today').getByRole('listitem')).toHaveCount(api.gates.length)
     await expect(admin.getByTestId('gates-today')).toContainText('Main entrance')
-    await expect(admin.getByTestId('events-coming-up')).toContainText('Cairo Jazz Nights')
+    await expect(admin.getByTestId('events-coming-up')).toContainText('Jazz Evenings on the Lawn')
     expect(paid.ref).toBeTruthy()
   })
 
@@ -127,7 +127,7 @@ test.describe.serial('portal operations', () => {
     await expect(ops.page.getByTestId('ticket-row')).toHaveCount(1)
     const row = ops.page.getByTestId('ticket-row')
     await expect(row).toContainText('Child (2–8 years)')
-    await expect(row).toContainText('Non-resident visitor')
+    await expect(row).toContainText('Non-Egyptian')
     await expect(row).toContainText('100 EGP')
     await expect(row).toContainText('Valid')
     await ops.page.getByRole('button', { name: `Open ticket ${t.ref}` }).click()
@@ -150,7 +150,7 @@ test.describe.serial('portal operations', () => {
     await ops.page.getByLabel('Status').selectOption('VALID')
     await ops.page.getByLabel('Visit date').fill(visit)
     await ops.page.getByLabel('Ticket type').selectOption({ label: 'Child (2–8 years)' })
-    await ops.page.getByLabel('Audience').selectOption({ label: 'Non-resident visitor' })
+    await ops.page.getByLabel('Audience').selectOption({ label: 'Non-Egyptian' })
     await expect(ops.page.getByTestId('ticket-row').filter({ hasText: t.ref })).toHaveCount(1)
     await ops.page.getByLabel('Visit date').fill(addDays(visit, 40))
     await expect(ops.page.getByText('No tickets match these filters.')).toBeVisible()

@@ -40,7 +40,7 @@ export function TicketTypesPage() {
       {error && <Notice tone="error">{error}</Notice>}
       <Card>
         {data && data.length === 0 && <p className="text-sm text-stone-500">No ticket types yet.</p>}
-        <ul className="divide-y divide-stone-100">
+        <ul className="divide-y divide-sand-100">
           {data?.map((t, i) => (
             <li key={t.id} data-testid="ticket-type-row" className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">

@@ -44,7 +44,7 @@ export function RestaurantsPage() {
       {data && data.length === 0 && <Notice tone="info">No restaurants yet. The website shows its built-in ones until you add one here.</Notice>}
       <ul className="space-y-3">
         {data?.map((r, i) => (
-          <li key={r.id} data-testid="restaurant-row" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
+          <li key={r.id} data-testid="restaurant-row" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand-200 bg-white p-4 shadow-sm">
             <div className="flex min-w-0 items-center gap-4">
               {r.hero ? <img src={assetUrl(r.hero.url)} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" /> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-xs text-stone-400">No photo</div>}
               <div className="min-w-0">
@@ -100,7 +100,7 @@ export function RestaurantEditor() {
         </Link>
       </div>
       <PageHeader title={isNew ? 'New restaurant' : (data?.nameEn ?? 'Restaurant')} description={isNew ? 'Fill in the details, then add photos and menus.' : `Address: /restaurants/${data?.slug}`} />
-      <div role="tablist" className="flex gap-1 border-b border-stone-200">
+      <div role="tablist" className="flex gap-1 border-b border-sand-200">
         {(['details', 'photos', 'menus'] as Tab[]).map((t) => (
           <button
             key={t}
@@ -290,7 +290,7 @@ function PhotosTab({ restaurant, onChanged }: { restaurant: RestaurantData; onCh
         {gallery.length === 0 && <p className="text-sm text-stone-500">No gallery photos.</p>}
         <ul className="space-y-3">
           {gallery.map((g, i) => (
-            <li key={g.media.id} className="grid items-center gap-3 rounded-lg border border-stone-200 p-3 sm:grid-cols-[5rem_1fr_1fr_auto]" data-testid="gallery-item">
+            <li key={g.media.id} className="grid items-center gap-3 rounded-lg border border-sand-200 p-3 sm:grid-cols-[5rem_1fr_1fr_auto]" data-testid="gallery-item">
               <img src={assetUrl(g.media.url)} alt="" className="h-16 w-20 rounded object-cover" />
               <TextInput label="Caption (English)" value={g.captionEn ?? ''} disabled={!canWrite} onChange={(e) => setGallery(gallery.map((x, j) => (j === i ? { ...x, captionEn: e.target.value } : x)))} />
               <TextInput label="Caption (Arabic)" rtl value={g.captionAr ?? ''} disabled={!canWrite} onChange={(e) => setGallery(gallery.map((x, j) => (j === i ? { ...x, captionAr: e.target.value } : x)))} />
@@ -378,7 +378,7 @@ function MenusTab({ restaurant, onChanged }: { restaurant: RestaurantData; onCha
       actions={canWrite && <Button onClick={() => setEditing('new')}>Add a menu</Button>}
     >
       {restaurant.menus.length === 0 && <p className="text-sm text-stone-500">No menus. Visitors will see a “menu coming soon” message.</p>}
-      <ul className="divide-y divide-stone-100">
+      <ul className="divide-y divide-sand-100">
         {restaurant.menus.map((m, i) => (
           <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 py-3" data-testid="menu-row">
             <div className="min-w-0">

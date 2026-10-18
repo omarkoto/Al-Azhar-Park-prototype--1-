@@ -165,3 +165,12 @@ export class ListSpecialHoursQueryDto extends createZodDto(
   z.object({ when: z.enum(['upcoming', 'past', 'all']).default('upcoming') }),
 ) {}
 
+
+export const contactMessageSchema = z.object({
+  name: clean(1, 120),
+  email: z.string().trim().toLowerCase().email().max(200),
+  message: clean(1, 4000),
+  /** Honeypot: a real visitor never sees this field, so any value means a bot. */
+  website: z.string().max(200).optional(),
+});
+export class ContactMessageDto extends createZodDto(contactMessageSchema) {}

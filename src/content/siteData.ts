@@ -171,7 +171,12 @@ export function applySiteData(content: SiteContent, site: PublicSite | null, lan
 const FALLBACK_PLACE = 'Al-Azhar Park, Salah Salem Street, Cairo, Egypt'
 const FALLBACK_MAPS_URL = 'https://www.google.com/maps?cid=13021591783999119538'
 
+const FALLBACK_FACEBOOK = 'https://www.facebook.com/alazharparkcairo/'
+const FALLBACK_INSTAGRAM = 'https://www.instagram.com/azhar_park/?hl=en'
+
 export interface SiteLinks {
+  facebookUrl: string
+  instagramUrl: string
   mapsUrl: string
   directionsUrl: string
   embedUrl: (lang: Lang) => string
@@ -183,6 +188,8 @@ export function siteLinks(site: PublicSite | null): SiteLinks {
   const point = c && c.latitude !== null && c.longitude !== null ? `${c.latitude},${c.longitude}` : null
   const place = point ?? encodeURIComponent(c?.addressEn ? `Al-Azhar Park, ${c.addressEn}` : FALLBACK_PLACE)
   return {
+    facebookUrl: c?.socialLinks?.facebook || FALLBACK_FACEBOOK,
+    instagramUrl: c?.socialLinks?.instagram || FALLBACK_INSTAGRAM,
     mapsUrl: c?.mapsUrl || FALLBACK_MAPS_URL,
     directionsUrl: `https://www.google.com/maps/dir/?api=1&destination=${place}`,
     embedUrl: (lang) => `https://www.google.com/maps?q=${place}&hl=${lang}&z=15&output=embed`,

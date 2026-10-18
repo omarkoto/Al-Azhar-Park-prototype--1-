@@ -10,7 +10,7 @@ const qr = new QrService(new AppConfigService({ DATABASE_URL: 'postgresql://u:p@
 const service = new TicketPdfService(qr);
 
 const ticket = (over: Record<string, unknown> = {}) => ({
-  publicRef: 'TKT-8F3K2LQ7ZP', qrKeyId: 1, status: 'VALID', typeNameEn: 'Adult', typeNameAr: 'بالغ', audienceNameEn: 'Egyptian / resident', audienceNameAr: 'مصري / مقيم',
+  publicRef: 'TKT-8F3K2LQ7ZP', qrKeyId: 1, status: 'VALID', typeNameEn: 'Adult', typeNameAr: 'بالغ', audienceNameEn: 'Egyptian', audienceNameAr: 'مصري',
   pricePaidMinor: 6000, currency: 'EGP', ...over,
 });
 const input = (locale: 'en' | 'ar', tickets = [ticket()]) => ({ locale, orderNumber: 'AZP-2026-000123', visitDate: '2026-10-09', tickets });
